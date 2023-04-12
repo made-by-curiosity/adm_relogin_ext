@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="popup.css" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="header_field">
+        <div class="title">Relogin</div>
+        <div class="switcher_field">
+          <div class="title_notice">Включение</div>
+          <div class="switcher_wrapper">
+            <label class="switch">
+              <input id="switchButton" type="checkbox" />
+              <span class="slider round"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="add-pswd-container">
+        <div class="inputs-wrapper">
+          <div class="login-data-inputs">
+            <p class="label">Название:</p>
+            <input type="text" id="login-name" placeholder="Введите название" maxlength="12" />
+          </div>
+          <div class="login-data-inputs">
+            <p class="label">Agency ID:</p>
+            <input type="text" id="agency-id" placeholder="Введите Agency ID" />
+          </div>
+          <div class="login-data-inputs">
+            <p class="label">Staff ID:</p>
+            <input type="text" id="staff-id" placeholder="Введите Staff ID" />
+          </div>
+          <div class="login-data-inputs">
+            <p class="label">Password:</p>
+            <input type="text" id="pswd-id" placeholder="Введите Password" />
+          </div>
+        </div>
+        <button type="button" class="addButton">Добавить</button>
+      </div>
+
+      <div class="logins-container">
+        <div class="login-btn">
+          <p class="login-name current-login">Ляшова</p>
+          <button type="button" class="login-delete">x</button>
+        </div>
+        <div class="login-btn">
+          <p class="login-name">Олейник</p>
+          <button type="button" class="login-delete">x</button>
+        </div>
+        <div class="login-btn">
+          <p class="login-name">Казарина</p>
+          <button type="button" class="login-delete">x</button>
+        </div>
+        <div class="login-btn">
+          <p class="login-name">Скрыльник</p>
+          <button type="button" class="login-delete">x</button>
+        </div>
+        <div class="login-btn">
+          <p class="login-name">Пономарёва</p>
+          <button type="button" class="login-delete">x</button>
+        </div>
+      </div>
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>

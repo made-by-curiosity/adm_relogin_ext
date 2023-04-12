@@ -1,0 +1,255 @@
+body {
+  font-family: 'Montserrat', sans-serif;
+  font-style: normal;
+  padding: 0;
+  margin: 0;
+
+  width: 350px;
+}
+
+p {
+  padding: 0;
+  margin: 0;
+}
+
+.wrapper {
+  position: relative;
+
+  padding: 115px 20px 20px 20px;
+}
+
+.title {
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 22px;
+}
+
+.add-pswd-container {
+  margin-bottom: 30px;
+}
+
+.inputs-wrapper {
+  display: grid;
+  gap: 5px;
+}
+
+.login-data-inputs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.label {
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 17px;
+}
+
+input {
+  padding: 10px;
+  background: #ffffff;
+  box-shadow: 0px 1px 2px rgba(51, 58, 222, 0.2), 0px 4px 6px rgba(74, 0, 224, 0.06);
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+}
+
+input::placeholder {
+  font-family: 'Montserrat', sans-serif;
+  font-style: normal;
+
+  letter-spacing: 0.03em;
+  color: #737189;
+}
+
+input:focus {
+  outline: 1px solid rgba(51, 58, 222, 0.3);
+}
+
+.buttons {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.addButton {
+  width: 100%;
+  height: 34px;
+
+  border: none;
+  background: #333ade;
+  border-radius: 5px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  margin-top: 10px;
+
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 17px;
+  text-align: center;
+
+  color: #ffffff;
+
+  cursor: pointer;
+}
+
+.addButton:hover {
+  background: rgba(51, 58, 222, 0.9);
+}
+
+.addButton:active {
+  background: rgba(51, 58, 222, 0.7);
+}
+
+.logins-container {
+  min-height: 20px;
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.login-btn {
+  width: 120px;
+  min-height: 30px;
+
+  background: rgba(51, 58, 222, 0.7);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  padding-left: 5px;
+  padding-right: 5px;
+
+  border-radius: 5px;
+
+  cursor: pointer;
+  box-shadow: 0 2.8px 2.2px rgba(0, 0, 0, 0.034), 0 6.7px 5.3px rgba(0, 0, 0, 0.048),
+    0 12.5px 10px rgba(0, 0, 0, 0.06), 0 22.3px 17.9px rgba(0, 0, 0, 0.072);
+}
+
+.login-btn:hover,
+.login-btn:focus {
+  background: rgba(51, 58, 222, 0.6);
+}
+
+.login-name {
+  width: 100%;
+  display: inline-flex;
+  justify-content: center;
+
+  font-size: 12px;
+}
+
+.login-name.current-login {
+  color: rgb(255, 253, 233);
+  text-shadow: 0px 0px 3px #000000;
+}
+
+.login-delete {
+  background-color: transparent;
+  cursor: pointer;
+  border-radius: 2px;
+
+  border: none;
+}
+
+.login-delete:hover,
+.login-delete:focus {
+  color: rgb(211, 209, 209);
+}
+
+/* switcher==================================== */
+
+.header_field {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 16px 20px;
+
+  background: #f5f5fd;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: center;
+}
+
+.switcher_field {
+  display: flex;
+  margin-top: 15px;
+}
+
+.title_notice {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 130%;
+}
+
+.switch {
+  margin-left: 10px;
+  position: relative;
+  display: inline-block;
+  width: 45px;
+  height: 25px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: '';
+  height: 19px;
+  width: 19px;
+  left: 2.3px;
+  bottom: 3px;
+  background-color: white;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+}
+
+input:checked + .slider {
+  background-color: #333ade;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #333ade;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(21px);
+  -ms-transform: translateX(21px);
+  transform: translateX(21px);
+}
+
+/* Закругленные ползунки */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}

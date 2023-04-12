@@ -1,0 +1,33 @@
+{
+    "manifest_version": 3,
+    "name": "Adm Relogin",
+    "description" : "Script for login and relogin",
+    "version" : "0.1.0",
+    "author": "made-by-curiosity",
+    "content_scripts": [
+        {
+            "matches" : ["http://www.charmdate.com/*"],
+            "js"  : ["content_script.js"],
+            "run_at": "document_end"
+        }
+    ],
+    "action" : {
+        "default_title" : "LoginBot",
+        "default_popup": "popup.html",
+        "default_icon": {                
+            "16": "icon.png",    
+            "24": "icon.png"  
+          }
+    },
+
+    "background" :{
+        "service_worker" : "background.js"
+    },
+
+    "permissions" : [
+        "activeTab",
+        "tabs",
+        "storage"
+    ]
+}
+
