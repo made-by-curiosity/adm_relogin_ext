@@ -11,6 +11,7 @@ const refs = {
 const port = chrome.runtime.connect({ name: 'exchangeData' });
 const loginPageUrl = 'http://www.charmdate.com/clagt/loginb.htm';
 
+// проверяем переключатель
 refs.switchButton.addEventListener('click', e => {
   chrome.storage.local.set({ switcher: e.target.checked });
 });
@@ -18,95 +19,143 @@ chrome.storage.local.get('switcher', res => {
   refs.switchButton.checked = res.switcher;
 });
 
-chrome.storage.local.get('id', res => {
-  let id = Number(res.id) || 0;
+// рисуем кнопки по открытию расширения
+chrome.storage.local.get(['id', 'currentId', 'savedLogins'], res => {
+  if (!res.currentId) {
+    return;
+  }
 
-  let loginNumber = `login-${id}`;
-
-  chrome.storage.local.get(['id', 'currentId', 'savedLogins'], res => {
-    console.log(res, res.id, res.currentId, res.savedLogins);
-    refs.loginNameInput.value = res.currentId?.loginName || '';
-    refs.agencyInput.value = res.currentId?.agency || '';
-    refs.staffInput.value = res.currentId?.staff || '';
-    refs.pswdInput.value = res.currentId?.pswd || '';
-
+  if (res.savedLogins) {
     res.savedLogins.forEach(login => {
-      addAdmLoginButton(login.loginId, login.loginName);
+      if (login) {
+        addAdmLoginButton(login.loginId, login.loginName);
+      }
     });
     removeCurrentBtnClass();
     addCurrentBtnClass(res.currentId.loginId);
-  });
-
-  refs.addBtn.addEventListener('click', onAddBtnClick);
-
-  function onAddBtnClick() {
-    if (
-      refs.loginNameInput.value.trim() === '' ||
-      refs.agencyInput.value.trim() === '' ||
-      refs.staffInput.value.trim() === '' ||
-      refs.pswdInput.value.trim() === ''
-    ) {
-      return;
-    }
-
-    chrome.storage.local.get('savedLogins', res => {
-      chrome.storage.local.set({
-        id: id,
-        currentId: {
-          loginId: id,
-          loginName: refs.loginNameInput.value,
-          agency: refs.agencyInput.value,
-          staff: refs.staffInput.value,
-          pswd: refs.pswdInput.value,
-        },
-      });
-      if (!res.savedLogins) {
-        // если добавленных логинов нет
-        chrome.storage.local.set({
-          savedLogins: [
-            {
-              loginId: id,
-              loginName: refs.loginNameInput.value,
-              agency: refs.agencyInput.value,
-              staff: refs.staffInput.value,
-              pswd: refs.pswdInput.value,
-            },
-          ],
-        });
-      } else {
-        // если добавленные логины есть
-        chrome.storage.local.set({
-          savedLogins: [
-            ...res.savedLogins,
-            {
-              loginId: id,
-              loginName: refs.loginNameInput.value,
-              agency: refs.agencyInput.value,
-              staff: refs.staffInput.value,
-              pswd: refs.pswdInput.value,
-            },
-          ],
-        });
-      }
-
-      // убрать current-login класс с текущей активной кнопки, чтобы при добавлении новой, этот класс был у новой
-      removeCurrentBtnClass();
-
-      // добавить кнопку в список выбора логинов
-      addAdmLoginButton(id, refs.loginNameInput.value);
-      // очистить все инпуты
-      clearInputsAfterAdd();
-
-      id += 1;
-      loginNumber = `login-${id}`;
-    });
   }
 });
 
+// добавляем новую кнопку логина
+refs.addBtn.addEventListener('click', onAddBtnClick);
+
+// перезаходим на выбранный логин и добавляем его в список текущих, чтобы при разлогине заходило в выбранный(текущий) аккаунт
+refs.loginsContainer.addEventListener('click', onLoginBtnClick);
+
+function onLoginBtnClick(e) {
+  chrome.storage.local.get('savedLogins', res => {
+    // если нажали кнопку удалить
+    if (e.target.classList.contains('login-delete')) {
+      const btnIdToDelete = Number(e.target.parentElement.id);
+      const accounts = res.savedLogins;
+      // удаляем аккаунт из хранилища
+      accounts.splice(btnIdToDelete, 1, null);
+      chrome.storage.local.set({ savedLogins: accounts });
+      // удаляем аккаунт из дом-дерева
+      e.target.parentElement.remove();
+      // если добавленных аккаунтов нет, текущий аккаунт обнуляется в хранилище
+      if (refs.loginsContainer.children.length === 0) {
+        chrome.storage.local.set({ currentId: null });
+        return;
+      }
+      // если есть добавленные аккаунты, то текущим становится первый в списке кнопок
+      const firstAccountId = Number(refs.loginsContainer.firstElementChild.id);
+      addCurrentBtnClass(firstAccountId);
+      chrome.storage.local.set({ currentId: accounts[firstAccountId] });
+    }
+
+    // если нажали кнопку выбора аккаунта
+    if (e.target.classList.contains('login-btn')) {
+      // ставим выбранный аккаунт текущим
+      const clickedBtnId = Number(e.target.id);
+      const chosenAccount = res.savedLogins[clickedBtnId];
+      chrome.storage.local.set({
+        currentId: {
+          loginId: chosenAccount.loginId,
+          loginName: chosenAccount.loginName,
+          agency: chosenAccount.agency,
+          staff: chosenAccount.staff,
+          pswd: chosenAccount.pswd,
+        },
+      });
+      removeCurrentBtnClass();
+      addCurrentBtnClass(clickedBtnId);
+      // перезаходим под выбранным аккаунтом
+      port.postMessage({ method: 'goTo', url: loginPageUrl });
+    }
+  });
+}
+
+function onAddBtnClick() {
+  // не даём добавить данные если есть пустые поля
+  if (
+    refs.loginNameInput.value.trim() === '' ||
+    refs.agencyInput.value.trim() === '' ||
+    refs.staffInput.value.trim() === '' ||
+    refs.pswdInput.value.trim() === ''
+  ) {
+    return;
+  }
+
+  // добавляем данные из инпутов в локальное хранилище
+  chrome.storage.local.get(['savedLogins', 'id'], res => {
+    let id = Number(res.id) || 0;
+    // добавляем общие данные
+    chrome.storage.local.set({
+      id: id + 1,
+      currentId: {
+        loginId: id,
+        loginName: refs.loginNameInput.value,
+        agency: refs.agencyInput.value,
+        staff: refs.staffInput.value,
+        pswd: refs.pswdInput.value,
+      },
+    });
+    // добавляем данные в объект добавляемого логина
+    if (!res.savedLogins) {
+      // если добавленных логинов нет
+      chrome.storage.local.set({
+        savedLogins: [
+          {
+            loginId: id,
+            loginName: refs.loginNameInput.value,
+            agency: refs.agencyInput.value,
+            staff: refs.staffInput.value,
+            pswd: refs.pswdInput.value,
+          },
+        ],
+      });
+    } else {
+      // если добавленные логины есть
+      chrome.storage.local.set({
+        savedLogins: [
+          ...res.savedLogins,
+          {
+            loginId: id,
+            loginName: refs.loginNameInput.value,
+            agency: refs.agencyInput.value,
+            staff: refs.staffInput.value,
+            pswd: refs.pswdInput.value,
+          },
+        ],
+      });
+    }
+
+    // убираем current-login класс с текущей активной кнопки, чтобы при добавлении новой кнопки, этот класс был у новой кнопки
+    removeCurrentBtnClass();
+
+    // добавляем и рисуем кнопку в списке выбора логинов
+    addAdmLoginButton(id, refs.loginNameInput.value);
+
+    // очищаем все инпуты после добавления кнопки
+    clearInputsAfterAdd();
+  });
+}
+
 function addAdmLoginButton(id, btnName) {
   const btnMarkup = `<div class="login-btn current-login" id="${id}">
-          <p class="login-name">${btnName}</p>
-          <button type="button" class="login-delete">x</button>
+          ${btnName}
+          <button type="button" class="login-delete">&#215;</button>
         </div>`;
 
   refs.loginsContainer.insertAdjacentHTML('beforeend', btnMarkup);
@@ -135,10 +184,12 @@ function addCurrentBtnClass(currentId) {
   });
 }
 
-// function deleteAdmLoginButton(id) {
-//   [...refs.loginsContainer.children].forEach(btn => {
-//     if (Number(btn.id) === id) {
-//       btn.remove();
-//     }
-//   });
-// }
+function populateInputs(res) {
+  if (!res.currentId) {
+    return;
+  }
+  refs.loginNameInput.value = res.currentId?.loginName || '';
+  refs.agencyInput.value = res.currentId?.agency || '';
+  refs.staffInput.value = res.currentId?.staff || '';
+  refs.pswdInput.value = res.currentId?.pswd || '';
+}

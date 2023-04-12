@@ -17,7 +17,6 @@ chrome.storage.local.get('switcher', v => {
 
 function relogin() {
   const pathname = document.location.pathname;
-  console.log('скрипт работает');
 
   if (pathname === '/clagt/index.php') {
     port.postMessage({ method: 'goTo', url: loginPageUrl });
@@ -28,9 +27,12 @@ function relogin() {
       let id = Number(res.id) || 0;
 
       let loginNumber = `login-${id}`;
-      console.log(loginNumber);
+
       chrome.storage.local.get(['id', 'currentId'], res => {
-        console.log(res.currentId);
+        if (!res.currentId) {
+          return;
+        }
+
         refs.agencyIdInput.value = res.currentId.agency;
         refs.staffIdInput.value = res.currentId.staff;
         refs.pswdInput.value = res.currentId.pswd;
