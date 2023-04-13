@@ -28,7 +28,7 @@ function relogin() {
 
       let loginNumber = `login-${id}`;
 
-      chrome.storage.local.get(['id', 'currentId'], res => {
+      chrome.storage.local.get('currentId', res => {
         if (!res.currentId) {
           return;
         }

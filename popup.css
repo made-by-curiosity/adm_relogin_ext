@@ -35,6 +35,21 @@ p {
   display: none;
 }
 
+.no-accounts-message {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  padding-bottom: 25px;
+
+  text-align: center;
+}
+
+.no-accounts-message.no-accounts-hidden {
+  display: none;
+}
+
 .add-pswd-container {
   margin-bottom: 30px;
 }
@@ -203,15 +218,11 @@ input:focus {
   justify-content: center;
 
   gap: 5px;
-  /* flex-direction: column;
-  justify-content: start;
-  align-items: center; */
 }
 
 .title_notice {
   font-weight: 400;
   font-size: 14px;
-  /* line-height: 130%; */
 }
 
 .switch {

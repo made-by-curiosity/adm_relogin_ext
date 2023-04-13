@@ -7,6 +7,7 @@ const refs = {
   addBtn: document.querySelector('button.addButton'),
   loginsContainer: document.querySelector('.logins-container'),
   errorText: document.querySelector('.empty-fields-error'),
+  noAccountsMessage: document.querySelector('.no-accounts-message'),
 };
 
 const port = chrome.runtime.connect({ name: 'exchangeData' });
@@ -35,6 +36,10 @@ chrome.storage.local.get(['id', 'currentId', 'savedLogins'], res => {
     removeCurrentBtnClass();
     addCurrentBtnClass(res.currentId.loginId);
   }
+
+  if (refs.loginsContainer.children.length > 0) {
+    refs.noAccountsMessage.classList.add('no-accounts-hidden');
+  }
 });
 
 // добавляем новую кнопку логина
@@ -57,6 +62,14 @@ function onLoginBtnClick(e) {
       // если добавленных аккаунтов нет, текущий аккаунт обнуляется в хранилище
       if (refs.loginsContainer.children.length === 0) {
         chrome.storage.local.set({ currentId: null });
+        refs.noAccountsMessage.classList.remove('no-accounts-hidden');
+        if (res.savedLogins.every(account => account === null)) {
+          chrome.storage.local.set({
+            id: 0,
+            currentId: null,
+            savedLogins: [],
+          });
+        }
         return;
       }
       // если есть добавленные аккаунты, то текущим становится первый в списке кнопок
@@ -154,6 +167,10 @@ function onAddBtnClick() {
 
     // очищаем все инпуты после добавления кнопки
     clearInputsAfterAdd();
+
+    if (refs.loginsContainer.children.length > 0) {
+      refs.noAccountsMessage.classList.add('no-accounts-hidden');
+    }
   });
 }
 
