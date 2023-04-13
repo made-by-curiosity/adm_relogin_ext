@@ -6,6 +6,7 @@ const refs = {
   pswdInput: document.getElementById('pswd-id'),
   addBtn: document.querySelector('button.addButton'),
   loginsContainer: document.querySelector('.logins-container'),
+  errorText: document.querySelector('.empty-fields-error'),
 };
 
 const port = chrome.runtime.connect({ name: 'exchangeData' });
@@ -94,6 +95,10 @@ function onAddBtnClick() {
     refs.staffInput.value.trim() === '' ||
     refs.pswdInput.value.trim() === ''
   ) {
+    refs.errorText.classList.remove('error-hidden');
+    setTimeout(() => {
+      refs.errorText.classList.add('error-hidden');
+    }, 3000);
     return;
   }
 
