@@ -79,24 +79,36 @@ function onLoginBtnClick(e) {
     }
 
     // если нажали кнопку выбора аккаунта
-    if (e.target.classList.contains('login-btn')) {
-      // ставим выбранный аккаунт текущим
-      const clickedBtnId = Number(e.target.id);
-      const chosenAccount = res.savedLogins[clickedBtnId];
-      chrome.storage.local.set({
-        currentId: {
-          loginId: chosenAccount.loginId,
-          loginName: chosenAccount.loginName,
-          agency: chosenAccount.agency,
-          staff: chosenAccount.staff,
-          pswd: chosenAccount.pswd,
-        },
-      });
-      removeCurrentBtnClass();
-      addCurrentBtnClass(clickedBtnId);
-      // перезаходим под выбранным аккаунтом
-      port.postMessage({ method: 'goTo', url: loginPageUrl });
-    }
+    chrome.tabs.query({ active: true, windowId: chrome.windows.WINDOW_ID_CURRENT }, tabs => {
+      const isCharmdate = tabs[0].url.includes('charmdate.com');
+
+      if (e.target.classList.contains('login-btn')) {
+        // ставим выбранный аккаунт текущим
+        const clickedBtnId = Number(e.target.id);
+        const chosenAccount = res.savedLogins[clickedBtnId];
+        chrome.storage.local.set({
+          currentId: {
+            loginId: chosenAccount.loginId,
+            loginName: chosenAccount.loginName,
+            agency: chosenAccount.agency,
+            staff: chosenAccount.staff,
+            pswd: chosenAccount.pswd,
+          },
+        });
+        removeCurrentBtnClass();
+        addCurrentBtnClass(clickedBtnId);
+        // перезаходим под выбранным аккаунтом
+        if (isCharmdate) {
+          port.postMessage({ method: 'goTo', url: loginPageUrl });
+        } else {
+          port.postMessage({ method: 'openTab', url: loginPageUrl });
+        }
+      }
+
+      //
+
+      //
+    });
   });
 }
 
