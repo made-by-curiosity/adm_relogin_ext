@@ -7,4 +7,5 @@ account.
 
 It's not uploaded to chrome-store, so installation is only manual.
 
-Example of installation and usage: ![alt-text](link)
+Example of installation and usage:
+![example](https://github.com/made-by-curiosity/lazy_charming/blob/main/assets/presentation.gif)
