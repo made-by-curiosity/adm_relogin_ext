@@ -1,6 +1,6 @@
 {
     "manifest_version": 3,
-    "name": "Adm Relogin",
+    "name": "Lazy Charming",
     "description" : "Script for login and relogin",
     "version" : "0.1.0",
     "author": "made-by-curiosity",
@@ -12,7 +12,7 @@
         }
     ],
     "action" : {
-        "default_title" : "LoginBot",
+        "default_title" : "Lazy Charming",
         "default_popup": "popup.html",
         "default_icon": {                
             "16": "icon.png",    
