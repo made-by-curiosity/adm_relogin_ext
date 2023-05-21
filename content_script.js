@@ -7,7 +7,9 @@ const refs = {
 
 const port = chrome.runtime.connect({ name: 'exchangeData' });
 const loginPageUrl = 'http://www.charmdate.com/clagt/loginb.htm';
+const ladyPageOnLoadPath = '/clagt/woman/women_profiles_allow_edit.php';
 const overviewPageUrl = 'http://www.charmdate.com/clagt/overview.php?menu1=1';
+const activeChatUrl = 'http://www.charmdate.com/clagt/livechat/index.php?action=live';
 
 chrome.storage.local.get('switcher', v => {
   if (v.switcher) {
@@ -41,7 +43,7 @@ function relogin() {
     });
   }
 
-  if (pathname === '/clagt/woman/women_profiles_allow_edit.php') {
-    port.postMessage({ method: 'goTo', url: overviewPageUrl });
+  if (pathname === ladyPageOnLoadPath) {
+    port.postMessage({ method: 'goTo', url: activeChatUrl });
   }
 }

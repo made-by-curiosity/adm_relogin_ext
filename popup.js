@@ -8,39 +8,24 @@ const refs = {
   loginsContainer: document.querySelector('.logins-container'),
   errorText: document.querySelector('.empty-fields-error'),
   noAccountsMessage: document.querySelector('.no-accounts-message'),
+  loginAddForm: document.querySelector('.add-pswd-container'),
 };
 
 const port = chrome.runtime.connect({ name: 'exchangeData' });
 const loginPageUrl = 'http://www.charmdate.com/clagt/loginb.htm';
 
-// проверяем переключатель
-refs.switchButton.addEventListener('click', e => {
-  chrome.storage.local.set({ switcher: e.target.checked });
-});
-chrome.storage.local.get('switcher', res => {
-  refs.switchButton.checked = res.switcher;
-});
-
+// проверяем состояние переключателя
+setSwitcherState();
+// заполняем инпуты если что-то было введено
+populateInputs();
 // рисуем кнопки по открытию расширения
-chrome.storage.local.get(['id', 'currentId', 'savedLogins'], res => {
-  if (!res.currentId) {
-    return;
-  }
+renderLoginBtns();
 
-  if (res.savedLogins) {
-    res.savedLogins.forEach(login => {
-      if (login) {
-        addAdmLoginButton(login.loginId, login.loginName);
-      }
-    });
-    removeCurrentBtnClass();
-    addCurrentBtnClass(res.currentId.loginId);
-  }
+// Сохраняем состояние переключателя
+refs.switchButton.addEventListener('click', onReloginSwitcherClick);
 
-  if (refs.loginsContainer.children.length > 0) {
-    refs.noAccountsMessage.classList.add('no-accounts-hidden');
-  }
-});
+// Сохраняем вводимые данные в хранилище
+refs.loginAddForm.addEventListener('input', onFormInput);
 
 // добавляем новую кнопку логина
 refs.addBtn.addEventListener('click', onAddBtnClick);
@@ -48,6 +33,55 @@ refs.addBtn.addEventListener('click', onAddBtnClick);
 // перезаходим на выбранный логин и добавляем его в список текущих, чтобы при разлогине заходило в выбранный(текущий) аккаунт
 refs.loginsContainer.addEventListener('click', onLoginBtnClick);
 
+// проверяем переключатель
+async function setSwitcherState() {
+  const switcherState = await chrome.storage.local.get('switcher');
+  const isReloginChecked = switcherState.switcher;
+
+  refs.switchButton.checked = isReloginChecked;
+}
+
+// Сохраняем состояние переключателя
+function onReloginSwitcherClick(e) {
+  chrome.storage.local.set({ switcher: e.target.checked });
+}
+
+// рисуем кнопки по открытию расширения
+async function renderLoginBtns() {
+  const { currentId, savedLogins } = await chrome.storage.local.get();
+
+  if (!currentId) {
+    return;
+  }
+
+  if (savedLogins) {
+    savedLogins.forEach(login => {
+      if (login) {
+        addAdmLoginButton(login.loginId, login.loginName);
+      }
+    });
+    removeCurrentBtnClass();
+    addCurrentBtnClass(currentId.loginId);
+  }
+
+  if (refs.loginsContainer.children.length > 0) {
+    refs.noAccountsMessage.classList.add('no-accounts-hidden');
+  }
+}
+
+// Сохраняем вводимые данные в хранилище
+async function onFormInput(e) {
+  const typingInputInfo = {
+    name: refs.loginNameInput.value.trim(),
+    agency: refs.agencyInput.value.trim(),
+    staff: refs.staffInput.value.trim(),
+    pswd: refs.pswdInput.value.trim(),
+  };
+
+  chrome.storage.local.set({ inputInfo: typingInputInfo });
+}
+
+// перезаходим на выбранный логин и добавляем его в список текущих, чтобы при разлогине заходило в выбранный(текущий) аккаунт
 function onLoginBtnClick(e) {
   chrome.storage.local.get('savedLogins', res => {
     // если нажали кнопку удалить
@@ -112,6 +146,7 @@ function onLoginBtnClick(e) {
   });
 }
 
+// добавляем новую кнопку логина
 function onAddBtnClick() {
   // не даём добавить данные если есть пустые поля
   if (
@@ -186,6 +221,7 @@ function onAddBtnClick() {
   });
 }
 
+// добавляем и рисуем кнопку в списке выбора логинов
 function addAdmLoginButton(id, btnName) {
   const btnMarkup = `<div class="login-btn current-login" id="${id}">
           ${btnName}
@@ -203,13 +239,24 @@ function removeCurrentBtnClass() {
   });
 }
 
+// очищаем все инпуты после добавления кнопки
 function clearInputsAfterAdd() {
+  const typingInputInfo = {
+    name: '',
+    agency: '',
+    staff: '',
+    pswd: '',
+  };
+
+  chrome.storage.local.set({ inputInfo: typingInputInfo });
+
   refs.loginNameInput.value = '';
   refs.agencyInput.value = '';
   refs.staffInput.value = '';
   refs.pswdInput.value = '';
 }
 
+// добавляем класс текущей кнопки
 function addCurrentBtnClass(currentId) {
   [...refs.loginsContainer.children].forEach(btn => {
     if (Number(btn.id) === currentId) {
@@ -218,12 +265,15 @@ function addCurrentBtnClass(currentId) {
   });
 }
 
-function populateInputs(res) {
-  if (!res.currentId) {
+// заполняем инпуты если что-то было введено
+async function populateInputs() {
+  const { inputInfo } = await chrome.storage.local.get();
+
+  if (!inputInfo) {
     return;
   }
-  refs.loginNameInput.value = res.currentId?.loginName || '';
-  refs.agencyInput.value = res.currentId?.agency || '';
-  refs.staffInput.value = res.currentId?.staff || '';
-  refs.pswdInput.value = res.currentId?.pswd || '';
+  refs.loginNameInput.value = inputInfo?.name || '';
+  refs.agencyInput.value = inputInfo?.agency || '';
+  refs.staffInput.value = inputInfo?.staff || '';
+  refs.pswdInput.value = inputInfo?.pswd || '';
 }
