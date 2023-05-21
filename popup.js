@@ -30,7 +30,7 @@ refs.loginAddForm.addEventListener('input', onFormInput);
 // добавляем новую кнопку логина
 refs.addBtn.addEventListener('click', onAddBtnClick);
 
-// перезаходим на выбранный логин и добавляем его в список текущих, чтобы при разлогине заходило в выбранный(текущий) аккаунт
+// удалить или перезайти в выбранный аккаунт
 refs.loginsContainer.addEventListener('click', onLoginBtnClick);
 
 // проверяем состояние переключателя
@@ -107,130 +107,119 @@ function onFormInput(e) {
   chrome.storage.local.set({ inputInfo: typingInputInfo });
 }
 
-// перезаходим на выбранный логин и добавляем его в список текущих, чтобы при разлогине заходило в выбранный(текущий) аккаунт
-function onLoginBtnClick(e) {
-  chrome.storage.local.get('savedLogins', res => {
-    // если нажали кнопку удалить
+// удалить или перезайти в выбранный аккаунт
+async function onLoginBtnClick(e) {
+  try {
+    const logins = await chrome.storage.local.get('savedLogins');
+    const accounts = [...logins.savedLogins];
+
+    // удалить выбранный аккаунт
     if (e.target.classList.contains('login-delete')) {
-      const btnIdToDelete = Number(e.target.parentElement.id);
-      const accounts = res.savedLogins;
-      // удаляем аккаунт из хранилища
-      accounts.splice(btnIdToDelete, 1, null);
-      chrome.storage.local.set({ savedLogins: accounts });
-      // удаляем аккаунт из дом-дерева
-      e.target.parentElement.remove();
-      // если добавленных аккаунтов нет, текущий аккаунт обнуляется в хранилище
-      if (refs.loginsContainer.children.length === 0) {
-        chrome.storage.local.set({ currentId: null });
-        refs.noAccountsMessage.classList.remove('no-accounts-hidden');
-        if (res.savedLogins.every(account => account === null)) {
-          chrome.storage.local.set({
-            id: 0,
-            currentId: null,
-            savedLogins: [],
-          });
-        }
-        return;
-      }
-      // если есть добавленные аккаунты, то текущим становится первый в списке кнопок
-      const firstAccountId = Number(refs.loginsContainer.firstElementChild.id);
-      addCurrentBtnClass(firstAccountId);
-      chrome.storage.local.set({ currentId: accounts[firstAccountId] });
+      deleteAccount(e.target, accounts);
     }
 
-    // если нажали кнопку выбора аккаунта
-    chrome.tabs.query({ active: true, windowId: chrome.windows.WINDOW_ID_CURRENT }, tabs => {
-      const isCharmdate = tabs[0].url.includes('charmdate.com');
+    // перезайти в выбранный аккаунт
+    loginToAccount(e.target, accounts);
+  } catch (error) {
+    console.log(error);
+  }
+}
 
-      if (e.target.classList.contains('login-btn')) {
-        // ставим выбранный аккаунт текущим
-        const clickedBtnId = Number(e.target.id);
-        const chosenAccount = res.savedLogins[clickedBtnId];
-        chrome.storage.local.set({
-          currentId: {
-            loginId: chosenAccount.loginId,
-            loginName: chosenAccount.loginName,
-            agency: chosenAccount.agency,
-            staff: chosenAccount.staff,
-            pswd: chosenAccount.pswd,
-          },
-        });
-        removeCurrentBtnClass();
-        addCurrentBtnClass(clickedBtnId);
-        // перезаходим под выбранным аккаунтом
-        if (isCharmdate) {
-          port.postMessage({ method: 'goTo', url: loginPageUrl });
-        } else {
-          port.postMessage({ method: 'openTab', url: loginPageUrl });
-        }
-      }
+// удалить выбранный аккаунт
+function deleteAccount(accountBtn, accounts) {
+  const btnIdToDelete = Number(accountBtn.parentElement.id);
 
-      //
+  // удаляем аккаунт из хранилища
+  accounts.splice(btnIdToDelete, 1, null);
+  chrome.storage.local.set({ savedLogins: accounts });
 
-      //
+  // удаляем аккаунт из дом-дерева
+  accountBtn.parentElement.remove();
+
+  // если добавленных аккаунтов нет, текущий аккаунт обнуляется в хранилище
+  if (refs.loginsContainer.children.length === 0) {
+    chrome.storage.local.set({
+      id: 0,
+      currentId: null,
+      savedLogins: [],
     });
+    refs.noAccountsMessage.classList.remove('no-accounts-hidden');
+
+    return;
+  }
+
+  // если есть добавленные аккаунты, то текущим становится первый в списке кнопок
+  const firstAccountId = Number(refs.loginsContainer.firstElementChild.id);
+  addCurrentBtnClass(firstAccountId);
+  chrome.storage.local.set({ currentId: accounts[firstAccountId] });
+}
+
+// перезайти в выбранный аккаунт
+function loginToAccount(accountBtn, accounts) {
+  chrome.tabs.query({ active: true, windowId: chrome.windows.WINDOW_ID_CURRENT }, tabs => {
+    const isCharmdate = tabs[0].url.includes('charmdate.com');
+
+    if (accountBtn.classList.contains('login-btn')) {
+      // ставим выбранный аккаунт текущим
+      const clickedBtnId = Number(accountBtn.id);
+      const chosenAccount = accounts[clickedBtnId];
+      chrome.storage.local.set({
+        currentId: {
+          loginId: chosenAccount.loginId,
+          loginName: chosenAccount.loginName,
+          agency: chosenAccount.agency,
+          staff: chosenAccount.staff,
+          pswd: chosenAccount.pswd,
+        },
+      });
+      removeCurrentBtnClass();
+      addCurrentBtnClass(clickedBtnId);
+
+      // перезаходим под выбранным аккаунтом
+      if (isCharmdate) {
+        port.postMessage({ method: 'goTo', url: loginPageUrl });
+      } else {
+        port.postMessage({ method: 'openTab', url: loginPageUrl });
+      }
+    }
   });
 }
 
 // добавляем новую кнопку логина
-function onAddBtnClick() {
-  // не даём добавить данные если есть пустые поля
-  if (
-    refs.loginNameInput.value.trim() === '' ||
-    refs.agencyInput.value.trim() === '' ||
-    refs.staffInput.value.trim() === '' ||
-    refs.pswdInput.value.trim() === ''
-  ) {
-    refs.errorText.classList.remove('error-hidden');
-    setTimeout(() => {
-      refs.errorText.classList.add('error-hidden');
-    }, 3000);
-    return;
-  }
+async function onAddBtnClick() {
+  try {
+    // не даём добавить данные если есть пустые поля
+    if (
+      refs.loginNameInput.value.trim() === '' ||
+      refs.agencyInput.value.trim() === '' ||
+      refs.staffInput.value.trim() === '' ||
+      refs.pswdInput.value.trim() === ''
+    ) {
+      refs.errorText.classList.remove('error-hidden');
+      setTimeout(() => {
+        refs.errorText.classList.add('error-hidden');
+      }, 3000);
+      return;
+    }
 
-  // добавляем данные из инпутов в локальное хранилище
-  chrome.storage.local.get(['savedLogins', 'id'], res => {
-    let id = Number(res.id) || 0;
-    // добавляем общие данные
+    // сохраняем кнопку в хранилище
+    const { savedLogins = [], id = 0 } = await chrome.storage.local.get();
+    const accountToAdd = {
+      loginId: id,
+      loginName: refs.loginNameInput.value,
+      agency: refs.agencyInput.value,
+      staff: refs.staffInput.value,
+      pswd: refs.pswdInput.value,
+    };
+
+    savedLogins.push(accountToAdd);
+
+    // обновляем данные в хранилище
     chrome.storage.local.set({
       id: id + 1,
-      currentId: {
-        loginId: id,
-        loginName: refs.loginNameInput.value,
-        agency: refs.agencyInput.value,
-        staff: refs.staffInput.value,
-        pswd: refs.pswdInput.value,
-      },
+      currentId: accountToAdd,
+      savedLogins,
     });
-    // добавляем данные в объект добавляемого логина
-    if (!res.savedLogins) {
-      // если добавленных логинов нет
-      chrome.storage.local.set({
-        savedLogins: [
-          {
-            loginId: id,
-            loginName: refs.loginNameInput.value,
-            agency: refs.agencyInput.value,
-            staff: refs.staffInput.value,
-            pswd: refs.pswdInput.value,
-          },
-        ],
-      });
-    } else {
-      // если добавленные логины есть
-      chrome.storage.local.set({
-        savedLogins: [
-          ...res.savedLogins,
-          {
-            loginId: id,
-            loginName: refs.loginNameInput.value,
-            agency: refs.agencyInput.value,
-            staff: refs.staffInput.value,
-            pswd: refs.pswdInput.value,
-          },
-        ],
-      });
-    }
 
     // убираем current-login класс с текущей активной кнопки, чтобы при добавлении новой кнопки, этот класс был у новой кнопки
     removeCurrentBtnClass();
@@ -244,7 +233,9 @@ function onAddBtnClick() {
     if (refs.loginsContainer.children.length > 0) {
       refs.noAccountsMessage.classList.add('no-accounts-hidden');
     }
-  });
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 // добавляем и рисуем кнопку в списке выбора логинов
