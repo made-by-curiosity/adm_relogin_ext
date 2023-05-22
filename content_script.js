@@ -1,3 +1,10 @@
+const urls = {
+  loginPageUrl: 'http://www.charmdate.com/clagt/loginb.htm',
+  ladyPageOnLoadPath: '/clagt/woman/women_profiles_allow_edit.php',
+  overviewPageUrl: 'http://www.charmdate.com/clagt/overview.php?menu1=1',
+  activeChatUrl: 'http://www.charmdate.com/clagt/livechat/index.php?action=live',
+};
+
 const refs = {
   agencyIdInput: document.querySelector('input[name="agentid"]'),
   staffIdInput: document.querySelector('input[name="staff_id"]'),
@@ -6,44 +13,24 @@ const refs = {
 };
 
 const port = chrome.runtime.connect({ name: 'exchangeData' });
-const loginPageUrl = 'http://www.charmdate.com/clagt/loginb.htm';
-const ladyPageOnLoadPath = '/clagt/woman/women_profiles_allow_edit.php';
-const overviewPageUrl = 'http://www.charmdate.com/clagt/overview.php?menu1=1';
-const activeChatUrl = 'http://www.charmdate.com/clagt/livechat/index.php?action=live';
 
-chrome.storage.local.get('switcher', v => {
-  if (v.switcher) {
+chrome.storage.local.get('switcher', r => {
+  if (r.switcher) {
     relogin();
   }
 });
 
-function relogin() {
+async function relogin() {
   const pathname = document.location.pathname;
 
   if (pathname === '/clagt/index.php') {
-    port.postMessage({ method: 'goTo', url: loginPageUrl });
+    port.postMessage({ method: 'goTo', url: await getSavedPageUrl() });
   }
+}
 
-  if (pathname === '/clagt/loginb.htm') {
-    chrome.storage.local.get('id', res => {
-      let id = Number(res.id) || 0;
+async function getSavedPageUrl() {
+  const defaultPageUrl = 'http://www.charmdate.com/clagt/woman/women_profiles_allow_edit.php';
+  const { pageToLogin = defaultPageUrl } = await chrome.storage.local.get();
 
-      let loginNumber = `login-${id}`;
-
-      chrome.storage.local.get('currentId', res => {
-        if (!res.currentId) {
-          return;
-        }
-
-        refs.agencyIdInput.value = res.currentId.agency;
-        refs.staffIdInput.value = res.currentId.staff;
-        refs.pswdInput.value = res.currentId.pswd;
-        refs.loginBtn.click();
-      });
-    });
-  }
-
-  if (pathname === ladyPageOnLoadPath) {
-    port.postMessage({ method: 'goTo', url: activeChatUrl });
-  }
+  return pageToLogin;
 }

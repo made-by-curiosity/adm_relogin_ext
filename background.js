@@ -8,6 +8,10 @@ chrome.runtime.onConnect.addListener(p => {
       if (msg.method == 'openTab') {
         chrome.tabs.create({ url: msg.url, active: true });
       }
+
+      if (msg.method == 'closeTab') {
+        chrome.tabs.remove(p.sender.tab.id);
+      }
     });
   }
 });

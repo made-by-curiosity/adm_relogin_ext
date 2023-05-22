@@ -1,3 +1,10 @@
+const urls = {
+  loginPageUrl: 'http://www.charmdate.com/clagt/loginb.htm',
+  ladyPageOnLoadPath: '/clagt/woman/women_profiles_allow_edit.php',
+  overviewPageUrl: 'http://www.charmdate.com/clagt/overview.php?menu1=1',
+  activeChatUrl: 'http://www.charmdate.com/clagt/livechat/index.php?action=live',
+};
+
 const refs = {
   switchButton: document.getElementById('switchButton'),
   loginNameInput: document.getElementById('login-name'),
@@ -9,13 +16,15 @@ const refs = {
   errorText: document.querySelector('.empty-fields-error'),
   noAccountsMessage: document.querySelector('.no-accounts-message'),
   loginAddForm: document.querySelector('.add-pswd-container'),
+  pageSelect: document.querySelector('.page-select'),
 };
 
 const port = chrome.runtime.connect({ name: 'exchangeData' });
-const loginPageUrl = 'http://www.charmdate.com/clagt/loginb.htm';
 
 // проверяем состояние переключателя
 setSwitcherState();
+// проверяем выбранный селект
+setSavedSelect();
 // заполняем инпуты если что-то было введено
 populateInputs();
 // рисуем кнопки по открытию расширения
@@ -26,6 +35,9 @@ refs.switchButton.addEventListener('click', onReloginSwitcherClick);
 
 // Сохраняем вводимые данные в хранилище
 refs.loginAddForm.addEventListener('input', onFormInput);
+
+// сохраняем выбранную страницу куда делать логин
+refs.pageSelect.addEventListener('change', onSelectChange);
 
 // добавляем новую кнопку логина
 refs.addBtn.addEventListener('click', onAddBtnClick);
@@ -43,6 +55,19 @@ async function setSwitcherState() {
   } catch (error) {
     console.log(error);
   }
+}
+
+// проверяем выбранный селект
+async function setSavedSelect() {
+  const defaultPageUrl = 'http://www.charmdate.com/clagt/woman/women_profiles_allow_edit.php';
+  const { pageToLogin = defaultPageUrl } = await chrome.storage.local.get();
+  const selectPages = refs.pageSelect.options;
+
+  [...selectPages].forEach(page => {
+    if (page.value === pageToLogin) {
+      page.selected = true;
+    }
+  });
 }
 
 // заполняем инпуты если что-то было введено
@@ -107,6 +132,13 @@ function onFormInput(e) {
   chrome.storage.local.set({ inputInfo: typingInputInfo });
 }
 
+// сохранить значение выбранного селекта
+async function onSelectChange() {
+  const pageToLogin = refs.pageSelect.selectedOptions[0].value;
+
+  chrome.storage.local.set({ pageToLogin });
+}
+
 // удалить или перезайти в выбранный аккаунт
 async function onLoginBtnClick(e) {
   try {
@@ -156,33 +188,50 @@ function deleteAccount(accountBtn, accounts) {
 
 // перезайти в выбранный аккаунт
 function loginToAccount(accountBtn, accounts) {
-  chrome.tabs.query({ active: true, windowId: chrome.windows.WINDOW_ID_CURRENT }, tabs => {
+  chrome.tabs.query({ active: true, windowId: chrome.windows.WINDOW_ID_CURRENT }, async tabs => {
     const isCharmdate = tabs[0].url.includes('charmdate.com');
+    const pageToLogin = refs.pageSelect.selectedOptions[0].value;
 
     if (accountBtn.classList.contains('login-btn')) {
       // ставим выбранный аккаунт текущим
       const clickedBtnId = Number(accountBtn.id);
-      const chosenAccount = accounts[clickedBtnId];
+      const { loginId, loginName, agency, staff, pswd } = accounts[clickedBtnId];
       chrome.storage.local.set({
         currentId: {
-          loginId: chosenAccount.loginId,
-          loginName: chosenAccount.loginName,
-          agency: chosenAccount.agency,
-          staff: chosenAccount.staff,
-          pswd: chosenAccount.pswd,
+          loginId,
+          loginName,
+          agency,
+          staff,
+          pswd,
         },
       });
       removeCurrentBtnClass();
       addCurrentBtnClass(clickedBtnId);
 
+      await makeLogin(agency, staff, pswd);
+
       // перезаходим под выбранным аккаунтом
       if (isCharmdate) {
-        port.postMessage({ method: 'goTo', url: loginPageUrl });
+        port.postMessage({ method: 'goTo', url: pageToLogin });
       } else {
-        port.postMessage({ method: 'openTab', url: loginPageUrl });
+        port.postMessage({ method: 'openTab', url: pageToLogin });
       }
     }
   });
+}
+
+async function makeLogin(agencyId, staffId, admPswd) {
+  const options = {
+    method: 'POST',
+    body: `agentid=${agencyId}&staff_id=${staffId}&passwd=${admPswd}&agentlogin=Login`,
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+  };
+
+  const url = `http://www.charmdate.com/clagt/login.php`;
+
+  await fetch(url, options);
 }
 
 // добавляем новую кнопку логина
