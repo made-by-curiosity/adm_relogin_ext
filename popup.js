@@ -8,6 +8,7 @@ const urls = {
 const refs = {
   switchButton: document.getElementById('switchButton'),
   loginNameInput: document.getElementById('login-name'),
+  ladyIdInput: document.getElementById('lady-id'),
   agencyInput: document.getElementById('agency-id'),
   staffInput: document.getElementById('staff-id'),
   pswdInput: document.getElementById('pswd-id'),
@@ -18,12 +19,18 @@ const refs = {
   noAccountsMessage: document.querySelector('.no-accounts-message'),
   loginAddForm: document.querySelector('.add-pswd-container'),
   pageSelect: document.querySelector('.page-select'),
+  ladySelectGroup: document.querySelector('.lady-group'),
+  currentWomanId: document.querySelector('.woman-id'),
 };
+
+// 90 days (in ms)
+const EMF_SEARCH_DAYS_DIFFERENCE = 7776000000;
 
 const port = chrome.runtime.connect({ name: 'exchangeData' });
 
 // проверяем состояние переключателя
 setSwitcherState();
+
 // проверяем выбранный селект
 setSavedSelect();
 // заполняем инпуты если что-то было введено
@@ -58,14 +65,31 @@ async function setSwitcherState() {
   }
 }
 
+// рисуем селекты с ссылками с леди айди
+async function renderLadyPagesSelects() {
+  const {
+    currentId: { ladyId },
+  } = await chrome.storage.local.get();
+
+  const res = await chrome.storage.local.get();
+  console.log(res);
+
+  const ladySelectMarkup = createPagesLadyOptionsMarkup(ladyId);
+
+  refs.ladySelectGroup.innerHTML = ladySelectMarkup;
+}
+
 // проверяем выбранный селект
 async function setSavedSelect() {
-  const defaultPageUrl = 'http://www.charmdate.com/clagt/woman/women_profiles_allow_edit.php';
-  const { pageToLogin = defaultPageUrl } = await chrome.storage.local.get();
+  // рисуем селекты с ссылками с леди айди
+  await renderLadyPagesSelects();
+  // выбираем нужный селект
+  const { pageToLogin = 'default' } = await chrome.storage.local.get();
   const selectPages = refs.pageSelect.options;
 
   [...selectPages].forEach(page => {
-    if (page.value === pageToLogin) {
+    const availablePageName = page.attributes.name.value;
+    if (availablePageName === pageToLogin) {
       page.selected = true;
     }
   });
@@ -80,6 +104,7 @@ async function populateInputs() {
       return;
     }
 
+    refs.ladyIdInput.value = inputInfo?.ladyId || '';
     refs.loginNameInput.value = inputInfo?.name || '';
     refs.agencyInput.value = inputInfo?.agency || '';
     refs.staffInput.value = inputInfo?.staff || '';
@@ -97,6 +122,8 @@ async function renderLoginBtns() {
     if (!currentId) {
       return;
     }
+
+    refs.currentWomanId.innerText = currentId.ladyId;
 
     if (savedLogins) {
       savedLogins.forEach(login => {
@@ -124,6 +151,7 @@ function onReloginSwitcherClick(e) {
 // Сохраняем вводимые данные в хранилище
 function onFormInput(e) {
   const typingInputInfo = {
+    ladyId: refs.ladyIdInput.value.trim(),
     name: refs.loginNameInput.value.trim(),
     agency: refs.agencyInput.value.trim(),
     staff: refs.staffInput.value.trim(),
@@ -135,7 +163,7 @@ function onFormInput(e) {
 
 // сохранить значение выбранного селекта
 async function onSelectChange() {
-  const pageToLogin = refs.pageSelect.selectedOptions[0].value;
+  const pageToLogin = refs.pageSelect.selectedOptions[0].attributes.name.value;
 
   chrome.storage.local.set({ pageToLogin });
 }
@@ -192,23 +220,11 @@ function loginToAccount(accountBtn, accounts) {
   chrome.tabs.query({ active: true, windowId: chrome.windows.WINDOW_ID_CURRENT }, async tabs => {
     try {
       const isCharmdate = tabs[0].url.includes('charmdate.com');
-      const pageToLogin = refs.pageSelect.selectedOptions[0].value;
 
       if (accountBtn.classList.contains('login-btn')) {
         // ставим выбранный аккаунт текущим
         const clickedBtnId = Number(accountBtn.id);
-        const { loginId, loginName, agency, staff, pswd } = accounts[clickedBtnId];
-        chrome.storage.local.set({
-          currentId: {
-            loginId,
-            loginName,
-            agency,
-            staff,
-            pswd,
-          },
-        });
-        removeCurrentBtnClass();
-        addCurrentBtnClass(clickedBtnId);
+        const { loginId, ladyId, loginName, agency, staff, pswd } = accounts[clickedBtnId];
 
         const loginRes = await makeLogin(agency, staff, pswd);
 
@@ -216,6 +232,25 @@ function loginToAccount(accountBtn, accounts) {
           throw new Error('Something went wrong, please try again');
         }
 
+        chrome.storage.local.set({
+          currentId: {
+            loginId,
+            ladyId,
+            loginName,
+            agency,
+            staff,
+            pswd,
+          },
+        });
+
+        removeCurrentBtnClass();
+        addCurrentBtnClass(clickedBtnId);
+
+        refs.currentWomanId.innerText = ladyId;
+
+        await setSavedSelect();
+
+        const pageToLogin = refs.pageSelect.selectedOptions[0].value;
         // перезаходим под выбранным аккаунтом
         if (isCharmdate) {
           port.postMessage({ method: 'goTo', url: pageToLogin });
@@ -251,6 +286,7 @@ async function onAddBtnClick() {
   try {
     // не даём добавить данные если есть пустые поля
     if (
+      refs.ladyIdInput.value.trim() === '' ||
       refs.loginNameInput.value.trim() === '' ||
       refs.agencyInput.value.trim() === '' ||
       refs.staffInput.value.trim() === '' ||
@@ -267,6 +303,7 @@ async function onAddBtnClick() {
     const { savedLogins = [], id = 0 } = await chrome.storage.local.get();
     const accountToAdd = {
       loginId: id,
+      ladyId: refs.ladyIdInput.value,
       loginName: refs.loginNameInput.value,
       agency: refs.agencyInput.value,
       staff: refs.staffInput.value,
@@ -287,6 +324,9 @@ async function onAddBtnClick() {
 
     // добавляем и рисуем кнопку в списке выбора логинов
     addAdmLoginButton(id, refs.loginNameInput.value);
+
+    // рисуем текущий айди девушки
+    refs.currentWomanId.innerText = refs.ladyIdInput.value;
 
     // очищаем все инпуты после добавления кнопки
     clearInputsAfterAdd();
@@ -312,6 +352,7 @@ function addAdmLoginButton(id, btnName) {
 // очищаем все инпуты после добавления кнопки
 function clearInputsAfterAdd() {
   const typingInputInfo = {
+    ladyId: '',
     name: '',
     agency: '',
     staff: '',
@@ -320,6 +361,7 @@ function clearInputsAfterAdd() {
 
   chrome.storage.local.set({ inputInfo: typingInputInfo });
 
+  refs.ladyIdInput.value = '';
   refs.loginNameInput.value = '';
   refs.agencyInput.value = '';
   refs.staffInput.value = '';
@@ -342,4 +384,72 @@ function removeCurrentBtnClass() {
       btn.classList.remove('current-login');
     }
   });
+}
+
+// считаем даты и время
+function getCalculatedTime() {
+  const currentDay = new Date().getUTCDate();
+  const currentMonth = new Date().getUTCMonth() + 1;
+  const currentYear = new Date().getUTCFullYear();
+
+  const dateNow = new Date().getTime();
+
+  const dateStart = dateNow - EMF_SEARCH_DAYS_DIFFERENCE;
+
+  const startDay = new Date(dateStart).getUTCDate();
+  const startMonth = new Date(dateStart).getUTCMonth() + 1;
+  const startYear = new Date(dateStart).getUTCFullYear();
+
+  const dates = {
+    currentDay,
+    currentMonth,
+    currentYear,
+    startDay,
+    startMonth,
+    startYear,
+  };
+
+  return dates;
+}
+
+function createPagesLadyOptionsMarkup(ladyId) {
+  const { currentDay, currentMonth, currentYear, startDay, startMonth, startYear } =
+    getCalculatedTime();
+
+  return `
+	<option name="endedchatsladyid" value="http://www.charmdate.com/clagt/livechat/index.php?service_type=&womanid=${ladyId}&action=close">
+                Законченные чаты
+              </option>
+							<option name="emfman" value="http://www.charmdate.com/clagt/emf_search_result.php?adddate_s_m=${startMonth}&adddate_s_d=${startDay}&adddate_s_y=${startYear}&adddate_e_m=${currentMonth}&adddate_e_d=${currentDay}&adddate_e_y=${currentYear}&pflag=&forward=&manid=&womanid=${ladyId}&Submit2=+Search+">
+                Входящие письма М
+              </option>
+							<option name="emfwoman" value="http://www.charmdate.com/clagt/emf_wm_result.php?adddate_s_m=${startMonth}&adddate_s_d=${startDay}&adddate_s_y=${startYear}&adddate_e_m=${currentMonth}&adddate_e_d=${currentDay}&adddate_e_y=${currentYear}&flag=&manid=&womanid=${ladyId}&Submit3=+Search+">
+                Исходящие письма Ж
+              </option>
+							<option name="emfsearchall" value="http://www.charmdate.com/clagt/emf_frequent_result.php?adddate_s_m=${startMonth}&adddate_s_d=${startDay}&adddate_s_y=${startYear}&adddate_e_m=${currentMonth}&adddate_e_d=${currentDay}&adddate_e_y=${currentYear}&manid=&womanid=${ladyId}&Submit2=+Search+">
+                Все письма All
+              </option>
+							<option name="admire" value="http://www.charmdate.com/clagt/admire/admir_search_result.php?sendflag=Y&senddate=1m&readflag=&manid=&womanid=${ladyId}&Submit=+Search+">
+                Admirer Mail Seach
+              </option>
+							<option name="callreqest" value="http://www.charmdate.com/clagt/lovecall/search_result_call.php?act=callsearch&formno=&subdate1=${currentYear}-${currentMonth}-${currentDay}&subdate2=${currentYear}-${currentMonth}-${currentDay}&calldate1=&calldate2=&staffid=&translator=&manid=&womanid=${ladyId}&callflag=&Submit22=+Search+Now+">
+                Запросы на звонки
+              </option>
+							<option name="firstemfall" value="http://www.charmdate.com/clagt/first_emf.php?first_emf_type=&groupshow=4&womanid=${ladyId}&manid=&sentMail=&agtstaff=">
+                Фёсты (все)
+              </option>
+							<option name="firstemfnotfull" value="http://www.charmdate.com/clagt/first_emf.php?first_emf_type=&groupshow=4&womanid=${ladyId}&manid=&sentMail=quota_not_full&agtstaff=">
+                Фёсты (ещё можно)
+              </option>
+							<option name="videoshowlady" value="http://www.charmdate.com/clagt/videoshow/access_key_request_new.php?groupshow=4&searchManId=&searchWomanId=${ladyId}&date1=&date2=&agtstaff=&Submit=Search">
+                Видеошоу входящие
+              </option>
+	`;
+}
+
+function createPagesOptionsMarkup() {
+  const { currentDay, currentMonth, currentYear, startDay, startMonth, startYear } =
+    getCalculatedTime();
+
+  // сюда разметку пропущеных с изменёнными датами
 }

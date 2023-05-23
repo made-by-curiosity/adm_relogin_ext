@@ -33,15 +33,39 @@ p {
 
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
 
-  gap: 5px;
+  gap: 10px;
+}
+
+.options-wrapper {
+  max-width: 110px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.settings-option {
+  width: 100%;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.page-select-wrapper {
+  width: 100%;
+
+  display: inline-block;
 }
 
 .title {
   font-weight: 600;
-  font-size: 18px;
-  line-height: 22px;
+  font-size: 14px;
+  line-height: 15px;
 }
 
 .switch {

@@ -10,42 +10,71 @@
   <body>
     <div class="wrapper">
       <div class="header_field">
-        <div class="title">Relogin</div>
-        <div class="switcher_field">
-          <div class="switcher_wrapper">
-            <label class="switch">
-              <input id="switchButton" type="checkbox" />
-              <span class="slider round"></span>
-            </label>
+        <div class="options-wrapper">
+          <div class="settings-option">
+            <div class="title">Relogin</div>
+            <div class="switcher_field">
+              <div class="switcher_wrapper">
+                <label class="switch">
+                  <input id="switchButton" type="checkbox" />
+                  <span class="slider round"></span>
+                </label>
+              </div>
+            </div>
           </div>
         </div>
         <div class="page-select-wrapper">
           <label for="page">Стартовая страница</label>
           <select id="page" name="page" class="page-select">
-            <option
-              value="http://www.charmdate.com/clagt/woman/women_profiles_allow_edit.php"
-              selected
-            >
-              Default Page
-            </option>
-            <option value="http://www.charmdate.com/clagt/overview.php?menu1=1">Overview</option>
-            <option value="http://www.charmdate.com/clagt/livechat/index.php?action=live">
-              Текущие чаты
-            </option>
-            <option value="http://www.charmdate.com/clagt/livechat/index.php?action=close">
-              Законченные чаты
-            </option>
-            <option value="http://www.charmdate.com/clagt/emf_men_women_unprinted.php">
-              Платные входящие письма
-            </option>
-            <option value="http://www.charmdate.com/clagt/agent_search_mw.php">
-              Поиск по письмам
-            </option>
-            <option value="http://www.charmdate.com/clagt/first_emf.php">Фёсты</option>
-            <option value="http://www.charmdate.com/clagt/cupidnote/index.php">Say hi</option>
-            <option value="http://www.charmdate.com/clagt/videoshow/access_key_request_new.php">
-              Видеошоу
-            </option>
+            <optgroup label="Default">
+              <option
+                name="default"
+                value="http://www.charmdate.com/clagt/woman/women_profiles_allow_edit.php"
+                selected
+              >
+                Default Page
+              </option>
+              <option name="overview" value="http://www.charmdate.com/clagt/overview.php?menu1=1">
+                Overview
+              </option>
+              <option
+                name="activechats"
+                value="http://www.charmdate.com/clagt/livechat/index.php?action=live"
+              >
+                Текущие чаты
+              </option>
+              <option
+                name="endedchats"
+                value="http://www.charmdate.com/clagt/livechat/index.php?action=close"
+              >
+                Законченные чаты
+              </option>
+              <option
+                name="paidletters"
+                value="http://www.charmdate.com/clagt/emf_men_women_unprinted.php"
+              >
+                Платные письма
+              </option>
+              <option
+                name="searchletters"
+                value="http://www.charmdate.com/clagt/agent_search_mw.php"
+              >
+                Поиск по письмам
+              </option>
+              <option name="firstemf" value="http://www.charmdate.com/clagt/first_emf.php">
+                Фёсты
+              </option>
+              <option name="sayhi" value="http://www.charmdate.com/clagt/cupidnote/index.php">
+                Say hi
+              </option>
+              <option
+                name="videoshow"
+                value="http://www.charmdate.com/clagt/videoshow/access_key_request_new.php"
+              >
+                Видеошоу
+              </option>
+            </optgroup>
+            <optgroup label="Lady ID" class="lady-group"></optgroup>
           </select>
         </div>
       </div>
@@ -58,6 +87,11 @@
 
       <form class="add-pswd-container">
         <div class="inputs-wrapper">
+          <div class="login-data-inputs">
+            <p class="label">Lady ID:</p>
+            <p class="woman-id"></p>
+            <input type="text" id="lady-id" placeholder="Введите Lady ID" />
+          </div>
           <div class="login-data-inputs">
             <p class="label">Название:</p>
             <input type="text" id="login-name" placeholder="Введите название" maxlength="12" />
