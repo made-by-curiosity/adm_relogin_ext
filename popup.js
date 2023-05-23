@@ -14,6 +14,7 @@ const refs = {
   addBtn: document.querySelector('button.addButton'),
   loginsContainer: document.querySelector('.logins-container'),
   errorText: document.querySelector('.empty-fields-error'),
+  authError: document.querySelector('.auth-error'),
   noAccountsMessage: document.querySelector('.no-accounts-message'),
   loginAddForm: document.querySelector('.add-pswd-container'),
   pageSelect: document.querySelector('.page-select'),
@@ -189,33 +190,44 @@ function deleteAccount(accountBtn, accounts) {
 // перезайти в выбранный аккаунт
 function loginToAccount(accountBtn, accounts) {
   chrome.tabs.query({ active: true, windowId: chrome.windows.WINDOW_ID_CURRENT }, async tabs => {
-    const isCharmdate = tabs[0].url.includes('charmdate.com');
-    const pageToLogin = refs.pageSelect.selectedOptions[0].value;
+    try {
+      const isCharmdate = tabs[0].url.includes('charmdate.com');
+      const pageToLogin = refs.pageSelect.selectedOptions[0].value;
 
-    if (accountBtn.classList.contains('login-btn')) {
-      // ставим выбранный аккаунт текущим
-      const clickedBtnId = Number(accountBtn.id);
-      const { loginId, loginName, agency, staff, pswd } = accounts[clickedBtnId];
-      chrome.storage.local.set({
-        currentId: {
-          loginId,
-          loginName,
-          agency,
-          staff,
-          pswd,
-        },
-      });
-      removeCurrentBtnClass();
-      addCurrentBtnClass(clickedBtnId);
+      if (accountBtn.classList.contains('login-btn')) {
+        // ставим выбранный аккаунт текущим
+        const clickedBtnId = Number(accountBtn.id);
+        const { loginId, loginName, agency, staff, pswd } = accounts[clickedBtnId];
+        chrome.storage.local.set({
+          currentId: {
+            loginId,
+            loginName,
+            agency,
+            staff,
+            pswd,
+          },
+        });
+        removeCurrentBtnClass();
+        addCurrentBtnClass(clickedBtnId);
 
-      await makeLogin(agency, staff, pswd);
+        const loginRes = await makeLogin(agency, staff, pswd);
 
-      // перезаходим под выбранным аккаунтом
-      if (isCharmdate) {
-        port.postMessage({ method: 'goTo', url: pageToLogin });
-      } else {
-        port.postMessage({ method: 'openTab', url: pageToLogin });
+        if (loginRes.url === 'http://www.charmdate.com/clagt/login.php') {
+          throw new Error('Something went wrong, please try again');
+        }
+
+        // перезаходим под выбранным аккаунтом
+        if (isCharmdate) {
+          port.postMessage({ method: 'goTo', url: pageToLogin });
+        } else {
+          port.postMessage({ method: 'openTab', url: pageToLogin });
+        }
       }
+    } catch (error) {
+      refs.authError.classList.remove('error-hidden');
+      setTimeout(() => {
+        refs.authError.classList.add('error-hidden');
+      }, 3000);
     }
   });
 }
@@ -231,7 +243,7 @@ async function makeLogin(agencyId, staffId, admPswd) {
 
   const url = `http://www.charmdate.com/clagt/login.php`;
 
-  await fetch(url, options);
+  return await fetch(url, options);
 }
 
 // добавляем новую кнопку логина

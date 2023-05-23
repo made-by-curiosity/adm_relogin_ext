@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "Lazy Charming",
     "description" : "Script for login and relogin",
-    "version" : "0.1.0",
+    "version" : "0.1.1",
     "author": "made-by-curiosity",
     "content_scripts": [
         {

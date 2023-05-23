@@ -111,14 +111,16 @@ input:checked + .slider:before {
 
 /* ------------Ошибка пустых полей--------------- */
 
-.empty-fields-error {
+.empty-fields-error,
+.auth-error {
   margin-bottom: 10px;
 
   text-align: center;
   color: #ff0202;
 }
 
-.empty-fields-error.error-hidden {
+.empty-fields-error.error-hidden,
+.auth-error.error-hidden {
   display: none;
 }
 
