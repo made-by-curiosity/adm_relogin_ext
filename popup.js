@@ -1,10 +1,3 @@
-const urls = {
-  loginPageUrl: 'http://www.charmdate.com/clagt/loginb.htm',
-  ladyPageOnLoadPath: '/clagt/woman/women_profiles_allow_edit.php',
-  overviewPageUrl: 'http://www.charmdate.com/clagt/overview.php?menu1=1',
-  activeChatUrl: 'http://www.charmdate.com/clagt/livechat/index.php?action=live',
-};
-
 const refs = {
   switchButton: document.getElementById('switchButton'),
   loginNameInput: document.getElementById('login-name'),
@@ -20,6 +13,7 @@ const refs = {
   loginAddForm: document.querySelector('.add-pswd-container'),
   pageSelect: document.querySelector('.page-select'),
   ladySelectGroup: document.querySelector('.lady-group'),
+  defaultSelectGroup: document.querySelector('.default-group'),
   currentWomanId: document.querySelector('.woman-id'),
 };
 
@@ -30,7 +24,6 @@ const port = chrome.runtime.connect({ name: 'exchangeData' });
 
 // проверяем состояние переключателя
 setSwitcherState();
-
 // проверяем выбранный селект
 setSavedSelect();
 // заполняем инпуты если что-то было введено
@@ -65,14 +58,23 @@ async function setSwitcherState() {
   }
 }
 
+// рисуем общие селекты
+function renderPagesSelects() {
+  const optionsMarkup = createPagesOptionsMarkup();
+
+  refs.defaultSelectGroup.innerHTML = optionsMarkup;
+}
+
 // рисуем селекты с ссылками с леди айди
 async function renderLadyPagesSelects() {
-  const {
-    currentId: { ladyId },
-  } = await chrome.storage.local.get();
+  const { currentId } = await chrome.storage.local.get();
 
-  const res = await chrome.storage.local.get();
-  console.log(res);
+  if (!currentId) {
+    refs.ladySelectGroup.innerHTML = '';
+    return;
+  }
+
+  const { ladyId } = currentId;
 
   const ladySelectMarkup = createPagesLadyOptionsMarkup(ladyId);
 
@@ -81,6 +83,8 @@ async function renderLadyPagesSelects() {
 
 // проверяем выбранный селект
 async function setSavedSelect() {
+  // рисуем ощие страницы в селекте
+  renderPagesSelects();
   // рисуем селекты с ссылками с леди айди
   await renderLadyPagesSelects();
   // выбираем нужный селект
@@ -164,8 +168,17 @@ function onFormInput(e) {
 // сохранить значение выбранного селекта
 async function onSelectChange() {
   const pageToLogin = refs.pageSelect.selectedOptions[0].attributes.name.value;
+  const pageToLoginLink = refs.pageSelect.selectedOptions[0].value;
 
-  chrome.storage.local.set({ pageToLogin });
+  chrome.storage.local.set({ pageToLogin, pageToLoginLink });
+
+  const { currentId } = await chrome.storage.local.get();
+
+  if (!currentId) {
+    return;
+  }
+
+  changePageForCurrenAccount();
 }
 
 // удалить или перезайти в выбранный аккаунт
@@ -176,7 +189,7 @@ async function onLoginBtnClick(e) {
 
     // удалить выбранный аккаунт
     if (e.target.classList.contains('login-delete')) {
-      deleteAccount(e.target, accounts);
+      await deleteAccount(e.target, accounts);
     }
 
     // перезайти в выбранный аккаунт
@@ -187,32 +200,50 @@ async function onLoginBtnClick(e) {
 }
 
 // удалить выбранный аккаунт
-function deleteAccount(accountBtn, accounts) {
-  const btnIdToDelete = Number(accountBtn.parentElement.id);
+async function deleteAccount(accountBtn, accounts) {
+  try {
+    const btnIdToDelete = Number(accountBtn.parentElement.id);
 
-  // удаляем аккаунт из хранилища
-  accounts.splice(btnIdToDelete, 1, null);
-  chrome.storage.local.set({ savedLogins: accounts });
+    // удаляем аккаунт из хранилища
+    accounts.splice(btnIdToDelete, 1, null);
+    chrome.storage.local.set({ savedLogins: accounts });
 
-  // удаляем аккаунт из дом-дерева
-  accountBtn.parentElement.remove();
+    // удаляем аккаунт из дом-дерева
+    accountBtn.parentElement.remove();
 
-  // если добавленных аккаунтов нет, текущий аккаунт обнуляется в хранилище
-  if (refs.loginsContainer.children.length === 0) {
-    chrome.storage.local.set({
-      id: 0,
-      currentId: null,
-      savedLogins: [],
-    });
-    refs.noAccountsMessage.classList.remove('no-accounts-hidden');
+    // если добавленных аккаунтов нет, текущий аккаунт обнуляется в хранилище
+    if (refs.loginsContainer.children.length === 0) {
+      chrome.storage.local.set({
+        id: 0,
+        currentId: null,
+        savedLogins: [],
+      });
+      refs.noAccountsMessage.classList.remove('no-accounts-hidden');
 
-    return;
+      await setSavedSelect();
+      return;
+    }
+
+    // если есть добавленные аккаунты, то текущим становится первый в списке кнопок
+    const firstAccountId = Number(refs.loginsContainer.firstElementChild.id);
+    addCurrentBtnClass(firstAccountId);
+    chrome.storage.local.set({ currentId: accounts[firstAccountId] });
+
+    await setSavedSelect();
+
+    const { agency, staff, pswd } = accounts[firstAccountId];
+
+    const loginRes = await makeLogin(agency, staff, pswd);
+
+    if (loginRes.url === 'http://www.charmdate.com/clagt/login.php') {
+      throw new Error('Something went wrong, please try again');
+    }
+  } catch (error) {
+    refs.authError.classList.remove('error-hidden');
+    setTimeout(() => {
+      refs.authError.classList.add('error-hidden');
+    }, 3000);
   }
-
-  // если есть добавленные аккаунты, то текущим становится первый в списке кнопок
-  const firstAccountId = Number(refs.loginsContainer.firstElementChild.id);
-  addCurrentBtnClass(firstAccountId);
-  chrome.storage.local.set({ currentId: accounts[firstAccountId] });
 }
 
 // перезайти в выбранный аккаунт
@@ -267,6 +298,25 @@ function loginToAccount(accountBtn, accounts) {
   });
 }
 
+// зайти на страницу по выбору селекта для текущего аккаунта
+function changePageForCurrenAccount() {
+  chrome.tabs.query({ active: true, windowId: chrome.windows.WINDOW_ID_CURRENT }, async tabs => {
+    try {
+      const isCharmdate = tabs[0].url.includes('charmdate.com');
+
+      const pageToLogin = refs.pageSelect.selectedOptions[0].value;
+      // перезаходим под выбранным аккаунтом
+      if (isCharmdate) {
+        port.postMessage({ method: 'goTo', url: pageToLogin });
+      } else {
+        port.postMessage({ method: 'openTab', url: pageToLogin });
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  });
+}
+
 async function makeLogin(agencyId, staffId, admPswd) {
   const options = {
     method: 'POST',
@@ -299,15 +349,25 @@ async function onAddBtnClick() {
       return;
     }
 
+    const agency = refs.agencyInput.value;
+    const staff = refs.staffInput.value;
+    const pswd = refs.pswdInput.value;
+
+    const loginRes = await makeLogin(agency, staff, pswd);
+
+    if (loginRes.url === 'http://www.charmdate.com/clagt/login.php') {
+      throw new Error('Something went wrong, please try again');
+    }
+
     // сохраняем кнопку в хранилище
     const { savedLogins = [], id = 0 } = await chrome.storage.local.get();
     const accountToAdd = {
       loginId: id,
       ladyId: refs.ladyIdInput.value,
       loginName: refs.loginNameInput.value,
-      agency: refs.agencyInput.value,
-      staff: refs.staffInput.value,
-      pswd: refs.pswdInput.value,
+      agency,
+      staff,
+      pswd,
     };
 
     savedLogins.push(accountToAdd);
@@ -319,6 +379,8 @@ async function onAddBtnClick() {
       savedLogins,
     });
 
+    // обновляем страницы в селектах под новый аккаунт
+    await setSavedSelect();
     // убираем current-login класс с текущей активной кнопки, чтобы при добавлении новой кнопки, этот класс был у новой кнопки
     removeCurrentBtnClass();
 
@@ -336,6 +398,10 @@ async function onAddBtnClick() {
     }
   } catch (error) {
     console.log(error);
+    refs.authError.classList.remove('error-hidden');
+    setTimeout(() => {
+      refs.authError.classList.add('error-hidden');
+    }, 3000);
   }
 }
 
@@ -412,6 +478,7 @@ function getCalculatedTime() {
   return dates;
 }
 
+// разметка вариантов страниц куда логиниться для селекта
 function createPagesLadyOptionsMarkup(ladyId) {
   const { currentDay, currentMonth, currentYear, startDay, startMonth, startYear } =
     getCalculatedTime();
@@ -439,17 +506,69 @@ function createPagesLadyOptionsMarkup(ladyId) {
                 Фёсты (все)
               </option>
 							<option name="firstemfnotfull" value="http://www.charmdate.com/clagt/first_emf.php?first_emf_type=&groupshow=4&womanid=${ladyId}&manid=&sentMail=quota_not_full&agtstaff=">
-                Фёсты (ещё можно)
+                Фёсты (нет лимита)
               </option>
 							<option name="videoshowlady" value="http://www.charmdate.com/clagt/videoshow/access_key_request_new.php?groupshow=4&searchManId=&searchWomanId=${ladyId}&date1=&date2=&agtstaff=&Submit=Search">
                 Видеошоу входящие
+              </option>
+							<option name="norecent" value="http://www.charmdate.com/clagt/relation/relation_focus.php?manid=&act=s&groupshow=4&womanid=${ladyId}">
+                No recent activity
               </option>
 	`;
 }
 
 function createPagesOptionsMarkup() {
-  const { currentDay, currentMonth, currentYear, startDay, startMonth, startYear } =
-    getCalculatedTime();
+  const { currentDay, currentMonth, currentYear } = getCalculatedTime();
 
-  // сюда разметку пропущеных с изменёнными датами
+  return `
+	<option
+                name="default"
+                value="http://www.charmdate.com/clagt/woman/women_profiles_allow_edit.php"
+                selected
+              >
+                Default Page
+              </option>
+              <option name="overview" value="http://www.charmdate.com/clagt/overview.php?menu1=1">
+                Overview
+              </option>
+              <option
+                name="activechats"
+                value="http://www.charmdate.com/clagt/livechat/index.php?action=live"
+              >
+                Текущие чаты
+              </option>
+              <option
+                name="endedchats"
+                value="http://www.charmdate.com/clagt/livechat/index.php?action=close"
+              >
+                Законченные чаты
+              </option>
+              <option
+                name="paidletters"
+                value="http://www.charmdate.com/clagt/emf_men_women_unprinted.php"
+              >
+                Платные письма
+              </option>
+              <option
+                name="searchletters"
+                value="http://www.charmdate.com/clagt/agent_search_mw.php"
+              >
+                Поиск по письмам
+              </option>
+              <option name="firstemf" value="http://www.charmdate.com/clagt/first_emf.php">
+                Фёсты
+              </option>
+              <option name="sayhi" value="http://www.charmdate.com/clagt/cupidnote/index.php">
+                Say hi
+              </option>
+              <option
+                name="videoshow"
+                value="http://www.charmdate.com/clagt/videoshow/access_key_request_new.php"
+              >
+                Видеошоу
+              </option>
+	<option name="missedchats" value="http://www.charmdate.com/clagt/livechat/chat_invite_miss_detail.php?toflag=0&sdate=${currentYear}-${currentMonth}-01&edate=${currentYear}-${currentMonth}-${currentDay}&datetxt=${currentYear}-${currentMonth}">
+Пропуски чатов
+</option>
+	`;
 }

@@ -21,16 +21,47 @@ chrome.storage.local.get('switcher', r => {
 });
 
 async function relogin() {
-  const pathname = document.location.pathname;
+  try {
+    const pathname = document.location.pathname;
+    const pageLink = await getSavedPageUrl();
 
-  if (pathname === '/clagt/index.php') {
-    port.postMessage({ method: 'goTo', url: await getSavedPageUrl() });
+    if (pathname === '/clagt/index.php') {
+      const loginRes = await makeLogin();
+
+      if (loginRes.url === 'http://www.charmdate.com/clagt/login.php') {
+        throw new Error('Something went wrong, please try again');
+      }
+
+      port.postMessage({ method: 'goTo', url: pageLink });
+    }
+  } catch (error) {
+    alert(
+      'Перезайти не удалось. Возможно пароль был изменён. Обновите пароль и попробуйте еще раз'
+    );
   }
 }
 
 async function getSavedPageUrl() {
   const defaultPageUrl = 'http://www.charmdate.com/clagt/woman/women_profiles_allow_edit.php';
-  const { pageToLogin = defaultPageUrl } = await chrome.storage.local.get();
+  const { pageToLoginLink = defaultPageUrl } = await chrome.storage.local.get();
 
-  return pageToLogin;
+  return pageToLoginLink;
+}
+
+async function makeLogin() {
+  const {
+    currentId: { agency, staff, pswd },
+  } = await chrome.storage.local.get();
+
+  const options = {
+    method: 'POST',
+    body: `agentid=${agency}&staff_id=${staff}&passwd=${pswd}&agentlogin=Login`,
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+  };
+
+  const url = `http://www.charmdate.com/clagt/login.php`;
+
+  return await fetch(url, options);
 }
