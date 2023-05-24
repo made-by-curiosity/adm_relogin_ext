@@ -281,12 +281,14 @@ function loginToAccount(accountBtn, accounts) {
 
         await setSavedSelect();
 
-        const pageToLogin = refs.pageSelect.selectedOptions[0].value;
+        const pageToLoginLink = refs.pageSelect.selectedOptions[0].value;
+
+        chrome.storage.local.set({ pageToLoginLink });
         // перезаходим под выбранным аккаунтом
         if (isCharmdate) {
-          port.postMessage({ method: 'goTo', url: pageToLogin });
+          port.postMessage({ method: 'goTo', url: pageToLoginLink });
         } else {
-          port.postMessage({ method: 'openTab', url: pageToLogin });
+          port.postMessage({ method: 'openTab', url: pageToLoginLink });
         }
       }
     } catch (error) {
