@@ -374,9 +374,11 @@ function loginToAccount(accountBtn, accounts) {
         const clickedBtnId = Number(accountBtn.id);
         const { loginId, ladyId, loginName, agency, staff, pswd } = accounts[clickedBtnId];
 
+        refs.loginsContainer.removeEventListener('click', onLoginBtnClick);
         const loginRes = await makeLogin(agency, staff, pswd);
 
         if (loginRes.url === 'http://www.charmdate.com/clagt/login.php') {
+          refs.loginsContainer.addEventListener('click', onLoginBtnClick);
           throw new Error('Something went wrong, please try again');
         }
 
@@ -401,6 +403,8 @@ function loginToAccount(accountBtn, accounts) {
         const pageToLoginLink = refs.pageSelect.selectedOptions[0].value;
 
         chrome.storage.local.set({ pageToLoginLink });
+
+        refs.loginsContainer.addEventListener('click', onLoginBtnClick);
         // перезаходим под выбранным аккаунтом
         if (isCharmdate) {
           port.postMessage({ method: 'goTo', url: pageToLoginLink });
