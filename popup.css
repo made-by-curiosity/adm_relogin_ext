@@ -227,7 +227,7 @@ input:focus {
 
 /* ------------Кнопка ДОБАВИТЬ--------------- */
 
-.addButton {
+.main-btn {
   width: 100%;
   height: 34px;
 
@@ -252,12 +252,17 @@ input:focus {
   cursor: pointer;
 }
 
-.addButton:hover {
+.main-btn:hover {
   background: rgba(229, 196, 31, 0.877);
 }
 
-.addButton:active {
+.main-btn:active {
   background: rgba(229, 196, 31, 0.795);
+}
+
+.addButton.is-hidden,
+.saveButton.is-hidden {
+  display: none;
 }
 
 /* ------------Кнопки аккаунта--------------- */
@@ -354,4 +359,39 @@ input:focus {
   color: rgb(179, 10, 10);
 
   text-shadow: 0px 0px 7px #ff0202, 0px 0px 10px #ff0202;
+}
+
+.login-change {
+  width: 15px;
+  height: 15px;
+  padding: 3px;
+
+  position: absolute;
+  top: 2px;
+  left: 4px;
+
+  display: inline-block;
+  -moz-transform: scale(-1, 1);
+  -webkit-transform: scale(-1, 1);
+  transform: scale(-1, 1);
+
+  background: transparent;
+
+  color: rgb(122, 111, 111);
+
+  cursor: pointer;
+  border-radius: 50%;
+
+  border: none;
+
+  font-size: 15px;
+  line-height: 0;
+  text-align: center;
+}
+
+.login-change:hover,
+.login-change:focus {
+  color: rgb(148, 148, 11);
+
+  text-shadow: 0px 0px 7px rgb(148, 148, 11), 0px 0px 10px rgb(148, 148, 11);
 }

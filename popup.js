@@ -6,6 +6,7 @@ const refs = {
   staffInput: document.getElementById('staff-id'),
   pswdInput: document.getElementById('pswd-id'),
   addBtn: document.querySelector('button.addButton'),
+  saveBtn: document.querySelector('button.saveButton'),
   loginsContainer: document.querySelector('.logins-container'),
   errorText: document.querySelector('.empty-fields-error'),
   authError: document.querySelector('.auth-error'),
@@ -22,14 +23,7 @@ const EMF_SEARCH_DAYS_DIFFERENCE = 7776000000;
 
 const port = chrome.runtime.connect({ name: 'exchangeData' });
 
-// проверяем состояние переключателя
-setSwitcherState();
-// проверяем выбранный селект
-setSavedSelect();
-// заполняем инпуты если что-то было введено
-populateInputs();
-// рисуем кнопки по открытию расширения
-renderLoginBtns();
+updatePopup();
 
 // Сохраняем состояние переключателя
 refs.switchButton.addEventListener('click', onReloginSwitcherClick);
@@ -43,8 +37,23 @@ refs.pageSelect.addEventListener('change', onSelectChange);
 // добавляем новую кнопку логина
 refs.addBtn.addEventListener('click', onAddBtnClick);
 
+// обновляем данные аккаунта
+refs.saveBtn.addEventListener('click', onSaveBtnClick);
+
 // удалить или перезайти в выбранный аккаунт
 refs.loginsContainer.addEventListener('click', onLoginBtnClick);
+
+async function updatePopup() {
+  refs.loginsContainer.innerHTML = '';
+  // проверяем состояние переключателя
+  await setSwitcherState();
+  // проверяем выбранный селект
+  await setSavedSelect();
+  // заполняем инпуты если что-то было введено
+  await populateInputs();
+  // рисуем кнопки по открытию расширения
+  await renderLoginBtns();
+}
 
 // проверяем состояние переключателя
 async function setSwitcherState() {
@@ -190,12 +199,120 @@ async function onLoginBtnClick(e) {
     // удалить выбранный аккаунт
     if (e.target.classList.contains('login-delete')) {
       await deleteAccount(e.target, accounts);
+      return;
+    }
+
+    // удалить выбранный аккаунт
+    if (e.target.classList.contains('login-change')) {
+      await changeAccountInfo(e.target, accounts);
+      return;
     }
 
     // перезайти в выбранный аккаунт
     loginToAccount(e.target, accounts);
   } catch (error) {
     console.log(error);
+  }
+}
+
+// редактировать данные аккаунта
+async function changeAccountInfo(accountBtn, accounts) {
+  const btnIdToEdit = Number(accountBtn.parentElement.id);
+  const { agency, ladyId, loginName, pswd, staff } = accounts[btnIdToEdit];
+
+  refs.saveBtn.dataset.id = btnIdToEdit;
+
+  refs.saveBtn.classList.remove('is-hidden');
+  refs.addBtn.classList.add('is-hidden');
+
+  refs.ladyIdInput.value = ladyId;
+  refs.loginNameInput.value = loginName;
+  refs.agencyInput.value = agency;
+  refs.staffInput.value = staff;
+  refs.pswdInput.value = pswd;
+}
+
+// сохранить изменённые данные аккаунта
+async function onSaveBtnClick(e) {
+  try {
+    // не даём добавить данные если есть пустые поля
+    if (
+      refs.ladyIdInput.value.trim() === '' ||
+      refs.loginNameInput.value.trim() === '' ||
+      refs.agencyInput.value.trim() === '' ||
+      refs.staffInput.value.trim() === '' ||
+      refs.pswdInput.value.trim() === ''
+    ) {
+      refs.errorText.classList.remove('error-hidden');
+      setTimeout(() => {
+        refs.errorText.classList.add('error-hidden');
+      }, 3000);
+      return;
+    }
+
+    refs.saveBtn.removeEventListener('click', onSaveBtnClick);
+
+    const agency = refs.agencyInput.value;
+    const staff = refs.staffInput.value;
+    const pswd = refs.pswdInput.value;
+
+    const loginRes = await makeLogin(agency, staff, pswd);
+
+    if (loginRes.url === 'http://www.charmdate.com/clagt/login.php') {
+      refs.saveBtn.addEventListener('click', onSaveBtnClick);
+      throw new Error('Something went wrong, please try again');
+    }
+
+    refs.saveBtn.addEventListener('click', onSaveBtnClick);
+
+    // сохраняем кнопку в хранилище
+    const { savedLogins, currentId } = await chrome.storage.local.get();
+    const accountIdToUpdate = Number(refs.saveBtn.dataset.id);
+
+    const accountToUpdate = {
+      agency,
+      ladyId: refs.ladyIdInput.value,
+      loginId: accountIdToUpdate,
+      loginName: refs.loginNameInput.value,
+      pswd,
+      staff,
+    };
+
+    savedLogins.splice(accountIdToUpdate, 1, accountToUpdate);
+
+    chrome.storage.local.set({
+      savedLogins,
+    });
+
+    refs.saveBtn.classList.add('is-hidden');
+    refs.addBtn.classList.remove('is-hidden');
+
+    // очищаем все инпуты после сохранения
+    clearInputsAfterAdd();
+
+    if (currentId.loginId === accountIdToUpdate) {
+      chrome.storage.local.set({
+        currentId: accountToUpdate,
+      });
+
+      updatePopup();
+    } else {
+      const { agency, staff, pswd } = currentId;
+
+      const loginRes = await makeLogin(agency, staff, pswd);
+
+      if (loginRes.url === 'http://www.charmdate.com/clagt/login.php') {
+        throw new Error('Something went wrong, please try again');
+      }
+
+      updatePopup();
+    }
+  } catch (error) {
+    console.error(error);
+    refs.authError.classList.remove('error-hidden');
+    setTimeout(() => {
+      refs.authError.classList.add('error-hidden');
+    }, 3000);
   }
 }
 
@@ -351,6 +468,8 @@ async function onAddBtnClick() {
       return;
     }
 
+    refs.addBtn.removeEventListener('click', onAddBtnClick);
+
     const agency = refs.agencyInput.value;
     const staff = refs.staffInput.value;
     const pswd = refs.pswdInput.value;
@@ -358,8 +477,11 @@ async function onAddBtnClick() {
     const loginRes = await makeLogin(agency, staff, pswd);
 
     if (loginRes.url === 'http://www.charmdate.com/clagt/login.php') {
+      refs.addBtn.addEventListener('click', onAddBtnClick);
       throw new Error('Something went wrong, please try again');
     }
+
+    refs.addBtn.addEventListener('click', onAddBtnClick);
 
     // сохраняем кнопку в хранилище
     const { savedLogins = [], id = 0 } = await chrome.storage.local.get();
@@ -412,6 +534,7 @@ function addAdmLoginButton(id, btnName) {
   const btnMarkup = `<div class="login-btn current-login" id="${id}">
           ${btnName}
           <button type="button" class="login-delete">&#215;</button>
+					<button type="button" class="login-change">&#9998;</button>
         </div>`;
 
   refs.loginsContainer.insertAdjacentHTML('beforeend', btnMarkup);
