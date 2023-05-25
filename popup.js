@@ -59,10 +59,30 @@ async function updatePopup() {
   await populateInputs();
   // рисуем кнопки по открытию расширения
   await renderLoginBtns();
+  // скрываем или рисуем меню
+  await setMenuState();
 }
 
-function onMenuHide() {
+async function onMenuHide() {
+  const { isMenuHidden = false } = await chrome.storage.local.get();
+
+  if (isMenuHidden) {
+    chrome.storage.local.set({ isMenuHidden: false });
+  } else {
+    chrome.storage.local.set({ isMenuHidden: true });
+  }
+
   refs.inputsSection.classList.toggle('is-hidden');
+}
+
+async function setMenuState() {
+  const { isMenuHidden = false } = await chrome.storage.local.get();
+
+  if (isMenuHidden) {
+    refs.inputsSection.classList.add('is-hidden');
+  } else {
+    refs.inputsSection.classList.remove('is-hidden');
+  }
 }
 
 // проверяем состояние переключателя
