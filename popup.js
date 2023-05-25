@@ -16,6 +16,8 @@ const refs = {
   ladySelectGroup: document.querySelector('.lady-group'),
   defaultSelectGroup: document.querySelector('.default-group'),
   currentWomanId: document.querySelector('.woman-id'),
+  hideMenuTrigger: document.querySelector('.hide-menu-trigger'),
+  inputsSection: document.querySelector('.add-pswd-container'),
 };
 
 // 90 days (in ms)
@@ -43,6 +45,9 @@ refs.saveBtn.addEventListener('click', onSaveBtnClick);
 // удалить или перезайти в выбранный аккаунт
 refs.loginsContainer.addEventListener('click', onLoginBtnClick);
 
+// скрыть основное меню
+refs.hideMenuTrigger.addEventListener('click', onMenuHide);
+
 async function updatePopup() {
   refs.loginsContainer.innerHTML = '';
   // проверяем состояние переключателя
@@ -53,6 +58,11 @@ async function updatePopup() {
   await populateInputs();
   // рисуем кнопки по открытию расширения
   await renderLoginBtns();
+}
+
+function onMenuHide() {
+  refs.inputsSection.classList.toggle('is-hidden');
+  refs.loginsContainer.classList.toggle('is-hidden');
 }
 
 // проверяем состояние переключателя

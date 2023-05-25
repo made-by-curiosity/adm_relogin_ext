@@ -260,6 +260,8 @@ input:focus {
   background: rgba(229, 196, 31, 0.795);
 }
 
+.add-pswd-container.is-hidden,
+.logins-container.is-hidden,
 .addButton.is-hidden,
 .saveButton.is-hidden {
   display: none;
@@ -394,4 +396,27 @@ input:focus {
   color: rgb(148, 148, 11);
 
   text-shadow: 0px 0px 7px rgb(148, 148, 11), 0px 0px 10px rgb(148, 148, 11);
+}
+
+.hide-menu-trigger {
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Chrome/Safari/Opera */
+  -khtml-user-select: none; /* Konqueror */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none;
+
+  font-size: 10px;
+  cursor: pointer;
+
+  transition: opacity 300ms ease-out;
+}
+
+.hide-menu-trigger:hover,
+.hide-menu-trigger:focus {
+  opacity: 0.5;
+}
+
+.page-select {
+  margin-top: 5px;
 }
