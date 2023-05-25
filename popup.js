@@ -18,6 +18,7 @@ const refs = {
   currentWomanId: document.querySelector('.woman-id'),
   hideMenuTrigger: document.querySelector('.hide-menu-trigger'),
   inputsSection: document.querySelector('.add-pswd-container'),
+  madeByLink: document.querySelector('.made-by'),
 };
 
 // 90 days (in ms)
@@ -62,7 +63,6 @@ async function updatePopup() {
 
 function onMenuHide() {
   refs.inputsSection.classList.toggle('is-hidden');
-  refs.loginsContainer.classList.toggle('is-hidden');
 }
 
 // проверяем состояние переключателя
