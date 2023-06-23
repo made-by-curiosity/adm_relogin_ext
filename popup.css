@@ -1,3 +1,41 @@
+* {
+  box-sizing: border-box;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 1);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(255, 255, 255, 1) 50%,
+    rgba(255, 255, 255, 0) 70%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(255, 255, 255, 0.7) 50%,
+    rgba(255, 255, 255, 0) 70%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+*::placeholder {
+  opacity: 0.4;
+}
+
 body {
   background-color: rgb(0, 0, 0);
   color: azure;
@@ -9,9 +47,30 @@ body {
   width: 390px;
 }
 
-p {
-  padding: 0;
-  margin: 0;
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin-top: 0;
+  margin-bottom: 0;
+  margin-right: 0;
+  margin-left: 0;
+}
+
+ul,
+ol {
+  margin-top: 0;
+  margin-bottom: 0;
+  margin-right: 0;
+  margin-left: 0;
+  padding-left: 0;
+}
+
+ul {
+  list-style: none;
 }
 
 .wrapper {
@@ -184,7 +243,8 @@ input:checked + .slider:before {
 /* ------------Блок инпутов аккаунтов--------------- */
 
 .add-pswd-container {
-  margin-bottom: 30px;
+  padding-top: 10px;
+  padding-bottom: 20px;
 }
 
 .inputs-wrapper {
@@ -260,19 +320,11 @@ input:focus {
   background: rgba(229, 196, 31, 0.795);
 }
 
-.made-by.is-hidden,
-.add-pswd-container.is-hidden,
-.logins-container.is-hidden,
-.addButton.is-hidden,
-.saveButton.is-hidden {
-  display: none;
-}
-
 /* ------------Кнопки аккаунта--------------- */
 
 .logins-container {
   min-height: 20px;
-  max-height: 120px;
+  max-height: 140px;
   padding-top: 10px;
   padding-bottom: 10px;
   padding-left: 5px;
@@ -287,29 +339,10 @@ input:focus {
   justify-content: space-around;
 }
 
-.logins-container::-webkit-scrollbar {
-  width: 10px;
-}
-
-.logins-container::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 1);
-}
-
-.logins-container::-webkit-scrollbar-thumb {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0) 30%,
-    rgba(255, 255, 255, 1) 50%,
-    rgba(255, 255, 255, 0) 70%,
-    rgba(255, 255, 255, 0) 100%
-  );
-}
-
 .login-btn {
   position: relative;
   width: 120px;
-  min-height: 30px;
+  min-height: 34px;
 
   background: rgb(36, 51, 117);
 
@@ -338,8 +371,6 @@ input:focus {
 .login-btn:hover,
 .login-btn:focus {
   transform: scale(1.03);
-  /* box-shadow: 0 0 5px rgba(255, 255, 255, 0.3), 0 0 10px rgba(0, 0, 0, 0.3),
-    0 0 20px rgba(255, 255, 255, 0.3); */
 }
 
 /* ------------Кнопка текущего аккаунта--------------- */
@@ -347,11 +378,7 @@ input:focus {
 .login-btn.current-login {
   box-shadow: 0 0 5px rgba(255, 255, 255, 0.3), 0 0 10px rgba(0, 0, 0, 0.3),
     0 0 15px rgba(255, 255, 255, 0.3);
-  /* color: rgb(218, 202, 126); */
   text-shadow: 0px 0px 3px #000000, 0px 0px 6px #ffffff, 0px 0px 8px #000000;
-}
-.login-btn.current-login:hover,
-.login-btn.current-login:focus {
 }
 
 /* ------------Кнопка удаления аккаунта--------------- */
@@ -423,6 +450,8 @@ input:focus {
   text-shadow: 0px 0px 7px rgb(148, 148, 11), 0px 0px 10px rgb(148, 148, 11);
 }
 
+/* ------------Скрыть меню--------------- */
+
 .hide-menu-trigger {
   -webkit-touch-callout: none; /* iOS Safari */
   -webkit-user-select: none; /* Chrome/Safari/Opera */
@@ -444,4 +473,316 @@ input:focus {
 
 .page-select {
   margin-top: 5px;
+}
+
+/* ------------Меню--------------- */
+
+.menu {
+  padding: 0;
+  margin: 0;
+
+  display: flex;
+  gap: 5px;
+}
+
+.menu-item {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  cursor: pointer;
+
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-bottom: none;
+
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+}
+
+.menu-item > span {
+  display: inline-block;
+  padding-top: 7px;
+  padding-bottom: 5px;
+  padding-left: 3px;
+  padding-right: 3px;
+}
+
+.menu-item.menu-current {
+  border-width: 2px;
+  /* border-color: rgb(161, 151, 250); */
+  box-shadow: 0 -3px 3px rgba(255, 255, 255, 0.3), 0 -5px 5px rgba(0, 0, 0, 0.3),
+    0 -7px 7px rgba(161, 151, 250, 0.5);
+}
+
+.menu-item.menu-current > span {
+  color: rgba(183, 175, 253, 0.7);
+  opacity: 0.7;
+}
+
+/* ------------Блок писем--------------- */
+
+.letters-container {
+  padding-top: 10px;
+  padding-bottom: 20px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.letters-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.letters-send-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.letter-text-field {
+  resize: none;
+}
+
+.letters-stop-btn {
+  background-color: #cf1313;
+}
+
+.letters-stop-btn:hover,
+.letters-stop-btn:focus {
+  background-color: #cf1313;
+
+  opacity: 0.9;
+}
+
+.sent-info-wrapper {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+}
+
+.sent-count-wrapper {
+  width: 120px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.letters-lady {
+  width: 175px;
+  justify-content: end;
+  gap: 10px;
+}
+
+.men-ids {
+  max-width: 200px;
+  padding: 3px;
+  display: inline-block;
+  height: 15px;
+}
+
+.letter-sending-status-wrapper {
+  max-width: 175px;
+}
+
+.letter-sending-status {
+  display: inline-block;
+}
+
+.letters-send-status-input {
+  color: #2c1ec4;
+}
+
+.letters-send-status-sending {
+  color: #f3ef0d;
+}
+
+.letters-send-status-stopped {
+  color: #cf1313;
+}
+
+.letters-send-status-finished {
+  color: #1bbd15;
+}
+
+/* ------------Альбомы с фото/видео материалами--------------- */
+
+.letters-media-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.letters-media-wrapper.disabled {
+  pointer-events: none;
+}
+
+.media-options {
+  min-width: 100px;
+  width: 100%;
+}
+
+.media-list-wrapper {
+  position: relative;
+
+  width: 100%;
+  height: 50px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+
+  border-radius: 3px;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  outline: 1px solid azure;
+}
+
+.media-list {
+  width: 100%;
+  padding: 4px;
+
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.media-custom-checkbox {
+  cursor: pointer;
+  display: flex;
+
+  width: 100%;
+}
+
+.media-custom-checkbox > span {
+  width: 100%;
+  display: inline-block;
+  user-select: none;
+}
+
+.media-original-checkbox {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  border: 0;
+  padding: 0;
+
+  white-space: nowrap;
+  clip-path: inset(100%);
+  clip: rect(0 0 0 0);
+  overflow: hidden;
+}
+
+.media-original-checkbox:checked + span {
+  background-color: rgb(30, 37, 71);
+}
+
+.media-original-checkbox:focus + span {
+  outline: 1px solid rgb(109, 122, 122);
+}
+
+.media-title {
+  margin-bottom: 5px;
+  margin-top: 2px;
+
+  display: inline-block;
+  width: 100%;
+  text-align: center;
+}
+
+.letters-warning-message {
+  display: block;
+
+  text-align: center;
+  color: #ff0202;
+}
+
+/* ------------Конвертер айдишников--------------- */
+
+.converter-wrapper {
+  padding-top: 10px;
+  padding-bottom: 20px;
+}
+
+.converter {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.converter-input-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.converter-title {
+  display: block;
+  text-align: center;
+}
+
+.converter-name {
+  margin-bottom: 5px;
+  cursor: pointer;
+}
+
+.converter-back {
+  display: inline-block;
+  color: #5c53c7;
+  cursor: pointer;
+  text-decoration: underline;
+  margin-bottom: 5px;
+}
+
+.converter-dirty-ids {
+  resize: none;
+}
+
+.radiobox-wrapper > label {
+  display: inline-block;
+  cursor: pointer;
+}
+
+.converter-open {
+  display: inline-block;
+  font-size: 16px;
+  cursor: pointer;
+  transform: scale(1);
+  transition: transform 250ms ease-out;
+}
+
+.converter-open:hover,
+.converter-open:focus {
+  color: #f3ef0d;
+  transform: scale(1.5);
+}
+
+.converter-wrapper.is-hidden,
+.size-letter-message.is-hidden,
+.no-man-id-input.is-hidden,
+.no-albums-picked.is-hidden,
+.letters-send-status-input.is-hidden,
+.letters-send-status-sending.is-hidden,
+.letters-send-status-stopped.is-hidden,
+.letters-send-status-finished.is-hidden,
+.letters-stop-btn.is-hidden,
+.letters-send-btn.is-hidden,
+.letters-container.is-hidden,
+.sections-container.is-hidden,
+.made-by.is-hidden,
+.add-pswd-container.is-hidden,
+.logins-container.is-hidden,
+.addButton.is-hidden,
+.saveButton.is-hidden {
+  display: none;
 }

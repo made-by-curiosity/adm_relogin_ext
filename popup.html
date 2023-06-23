@@ -35,43 +35,196 @@
       </div>
 
       <p class="empty-fields-error error-hidden">Все поля должны быть заполнены</p>
-      <p class="auth-error error-hidden">
-        Что-то пошло не так.<br />
-        Возможно пароль был изменён.
-      </p>
 
-      <form class="add-pswd-container">
-        <div class="inputs-wrapper">
-          <div class="login-data-inputs">
-            <p class="label">Lady ID:</p>
-            <p class="woman-id"></p>
-            <input type="text" id="lady-id" placeholder="Введите Lady ID" />
+      <div class="sections-container">
+        <div class="nav">
+          <ul class="menu">
+            <li class="menu-item menu-current"><span class="menu-accounts">Add account</span></li>
+            <li class="menu-item"><span class="menu-letters">Send letters</span></li>
+          </ul>
+        </div>
+        <form class="add-pswd-container">
+          <div class="inputs-wrapper">
+            <div class="login-data-inputs">
+              <p class="label">Lady ID:</p>
+              <p class="woman-id"></p>
+              <input type="text" id="lady-id" placeholder="Введите Lady ID" />
+            </div>
+            <div class="login-data-inputs">
+              <p class="label">Название:</p>
+              <input type="text" id="login-name" placeholder="Введите название" maxlength="12" />
+            </div>
+            <div class="login-data-inputs">
+              <p class="label">Agency ID:</p>
+              <input type="text" id="agency-id" placeholder="Введите Agency ID" />
+            </div>
+            <div class="login-data-inputs">
+              <p class="label">Staff ID:</p>
+              <input type="text" id="staff-id" placeholder="Введите Staff ID" />
+            </div>
+            <div class="login-data-inputs">
+              <p class="label">Password:</p>
+              <input type="password" id="pswd-id" placeholder="Введите Password" />
+            </div>
           </div>
-          <div class="login-data-inputs">
-            <p class="label">Название:</p>
-            <input type="text" id="login-name" placeholder="Введите название" maxlength="12" />
+          <button type="button" class="addButton main-btn">Добавить</button>
+          <button type="button" class="saveButton main-btn is-hidden" data-id="">Сохранить</button>
+        </form>
+        <div class="letters-container is-hidden">
+          <p class="letters-warning-message no-man-id-input is-hidden">Введите ID мужчин</p>
+          <p class="letters-warning-message size-letter-message is-hidden">
+            Текст письма должен быть более 200 символов
+          </p>
+          <div class="letters-wrapper letters-send-info">
+            <div class="sent-info-wrapper">
+              <div class="letter-sending-status-wrapper">
+                <span>Статус: </span>
+                <div class="letter-sending-status">
+                  <span class="letters-send-status-input">Ввод данных</span>
+                  <span class="letters-send-status-sending is-hidden">Идёт отправка...</span>
+                  <span class="letters-send-status-stopped is-hidden">Остановлено</span>
+                  <span class="letters-send-status-finished is-hidden">Отправка завершена</span>
+                </div>
+              </div>
+              <div class="sent-count-wrapper letters-lady">
+                <label for="">Lady ID:</label>
+                <span class="woman-id"></span>
+              </div>
+            </div>
+
+            <div class="sent-info-wrapper">
+              <div class="sent-count-wrapper">
+                <span>Всего: </span><span class="all-men-quantity">0</span>
+              </div>
+              <div class="sent-count-wrapper letter-type-wrapper">
+                <label>
+                  <input type="radio" name="letter" value="EMF" checked class="letter-type-emf" />
+                  EMF
+                </label>
+                <label>
+                  <input type="radio" name="letter" value="SayHi" class="letter-type-sayhi" />
+                  SayHi
+                </label>
+              </div>
+            </div>
+            <div class="sent-info-wrapper">
+              <div class="sent-count-wrapper">
+                <span>Отправлено: </span><span class="letters-sent-counter">0</span>
+              </div>
+              <input type="text" class="men-ids sent" disabled />
+            </div>
+            <div class="sent-info-wrapper">
+              <div class="sent-count-wrapper">
+                <span>Не отправлено: </span><span class="letters-not-sent-counter">0</span>
+              </div>
+              <input type="text" class="men-ids not-sent" disabled />
+            </div>
+            <div class="sent-info-wrapper">
+              <div class="sent-count-wrapper">
+                <span>Осталось: </span><span class="letters-left-counter">0</span>
+              </div>
+              <input type="text" class="men-ids left-to-send" disabled />
+            </div>
+
+            <div class="letters-media-section">
+              <span class="media-title">Альбомы с фото/видео</span>
+              <div class="letters-media-wrapper">
+                <div class="media-options">
+                  <span>Бесплатные фото</span>
+                  <div class="media-list-wrapper">
+                    <div class="media-list free-photo-list"></div>
+                  </div>
+                </div>
+                <div class="media-options">
+                  <span>Платные фото</span>
+                  <div class="media-list-wrapper">
+                    <div class="media-list paid-photo-list"></div>
+                  </div>
+                </div>
+                <div class="media-options">
+                  <span>Видео</span>
+                  <div class="media-list-wrapper"><div class="media-list videos-list"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <label
+              ><span class="converter-open">&#128472;</span> Men ID's (разделяйте айди запятыми, без
+              пробелов)
+            </label>
+            <input
+              class="letters-men-ids"
+              type="text"
+              placeholder="CM55826251,CM17388307_Derek,CM90827940"
+            />
           </div>
-          <div class="login-data-inputs">
-            <p class="label">Agency ID:</p>
-            <input type="text" id="agency-id" placeholder="Введите Agency ID" />
+          <div class="letters-wrapper">
+            <label for="">Letter to man | Имя - {name}, Страна - {living}</label>
+            <textarea name="letter" id="" cols="10" rows="5" class="letter-text-field"></textarea>
           </div>
-          <div class="login-data-inputs">
-            <p class="label">Staff ID:</p>
-            <input type="text" id="staff-id" placeholder="Введите Staff ID" />
-          </div>
-          <div class="login-data-inputs">
-            <p class="label">Password:</p>
-            <input type="password" id="pswd-id" placeholder="Введите Password" />
+          <button type="button" class="letters-send-btn main-btn" data-action="EMF">
+            Начать отправку
+          </button>
+          <button type="button" class="letters-stop-btn main-btn is-hidden">Остановить</button>
+        </div>
+
+        <div class="converter-wrapper is-hidden">
+          <span class="converter-back">&#129044; Назад к письмам</span>
+          <div class="converter">
+            <span class="converter-title">ID converter</span>
+            <div class="converter-input-wrapper">
+              <label for="converter-output" class="converter-name">Converted:</label>
+              <input type="text" id="converter-output" disabled />
+            </div>
+            <div class="radiobox-wrapper">
+              <label
+                ><input type="radio" name="converter" id="converter-first" checked />First
+                EMF</label
+              >
+              <label
+                ><input type="radio" name="converter" id="converter-norecent" />No Recent
+                Activity</label
+              >
+              <label
+                ><input type="radio" name="converter" id="converter-incoming" />Входящие EMF</label
+              >
+              <label><input type="radio" name="converter" id="converter-sayhi" />Say Hi</label>
+              <label
+                ><input type="radio" name="converter" id="converter-google" />Google Sheets,
+                Telegram etc...</label
+              >
+            </div>
+            <div class="converter-input-wrapper">
+              <label for="converter-input" class="converter-name">IDs to convert:</label>
+              <textarea
+                name="converter-input"
+                rows="5"
+                class="converter-dirty-ids"
+                id="converter-input"
+                placeholder="Пример:
+CM99754408(Axel)
+CM763054(atypique)
+CM88775226(Jostein)
+CM26836230(Matthew)
+CM95519223(Tommy)
+"
+              ></textarea>
+              <button type="button" class="main-btn converter-btn" data-action="converter-first">
+                Показать откуда готовилось нападение
+              </button>
+            </div>
           </div>
         </div>
-        <button type="button" class="addButton main-btn">Добавить</button>
-        <button type="button" class="saveButton main-btn is-hidden" data-id="">Сохранить</button>
-      </form>
+      </div>
       <p class="no-accounts-message">Вы еще не добавили ни одного аккаунта</p>
       <a href="https://github.com/made-by-curiosity" target="_blank" class="made-by"
         >made by curiosity</a
       >
 
+      <p class="auth-error error-hidden">
+        Что-то пошло не так.<br />
+        Возможно пароль был изменён.
+      </p>
       <div class="logins-container"></div>
     </div>
     <script src="popup.js"></script>
