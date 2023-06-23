@@ -205,20 +205,24 @@ async function renderLadyPagesSelects() {
 
 // проверяем выбранный селект
 async function setSavedSelect() {
-  // рисуем ощие страницы в селекте
-  renderPagesSelects();
-  // рисуем селекты с ссылками с леди айди
-  await renderLadyPagesSelects();
-  // выбираем нужный селект
-  const { pageToLogin = 'default' } = await chrome.storage.local.get();
-  const selectPages = refs.pageSelect.options;
+  try {
+    // рисуем ощие страницы в селекте
+    renderPagesSelects();
+    // рисуем селекты с ссылками с леди айди
+    await renderLadyPagesSelects();
+    // выбираем нужный селект
+    const { pageToLogin = 'default' } = await chrome.storage.local.get();
+    const selectPages = refs.pageSelect.options;
 
-  [...selectPages].forEach(page => {
-    const availablePageName = page.attributes.name.value;
-    if (availablePageName === pageToLogin) {
-      page.selected = true;
-    }
-  });
+    [...selectPages].forEach(page => {
+      const availablePageName = page.attributes.name.value;
+      if (availablePageName === pageToLogin) {
+        page.selected = true;
+      }
+    });
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 // заполняем инпуты если что-то было введено
@@ -275,7 +279,7 @@ function onReloginSwitcherClick(e) {
 }
 
 // Сохраняем вводимые данные в хранилище
-function onFormInput(e) {
+function onFormInput() {
   const typingInputInfo = {
     ladyId: refs.ladyIdInput.value.trim(),
     name: refs.loginNameInput.value.trim(),
@@ -289,18 +293,22 @@ function onFormInput(e) {
 
 // сохранить значение выбранного селекта
 async function onSelectChange() {
-  const pageToLogin = refs.pageSelect.selectedOptions[0].attributes.name.value;
-  const pageToLoginLink = refs.pageSelect.selectedOptions[0].value;
+  try {
+    const pageToLogin = refs.pageSelect.selectedOptions[0].attributes.name.value;
+    const pageToLoginLink = refs.pageSelect.selectedOptions[0].value;
 
-  chrome.storage.local.set({ pageToLogin, pageToLoginLink });
+    chrome.storage.local.set({ pageToLogin, pageToLoginLink });
 
-  const { currentId } = await chrome.storage.local.get();
+    const { currentId } = await chrome.storage.local.get();
 
-  if (!currentId) {
-    return;
+    if (!currentId) {
+      return;
+    }
+
+    changePageForCurrenAccount();
+  } catch (error) {
+    console.log(error);
   }
-
-  changePageForCurrenAccount();
 }
 
 // удалить или перезайти в выбранный аккаунт
@@ -329,7 +337,7 @@ async function onLoginBtnClick(e) {
 }
 
 // редактировать данные аккаунта
-async function changeAccountInfo(accountBtn, accounts) {
+function changeAccountInfo(accountBtn, accounts) {
   refs.converterSection.classList.add('is-hidden');
 
   chrome.storage.local.set({ currentMenu: 'accounts' });
@@ -835,20 +843,24 @@ function createPagesOptionsMarkup() {
 }
 
 async function updateLettersMenu() {
-  // обновить тип отправляемых писем
-  await updateLettersTypeSwitcher();
-  // доюавить сохранённую информацию в инпуты
-  await populateLettersInputs();
-  // показать сколько мужчин для отправки писем
-  setAllMenQuantity();
-  //показать альбомы для материалов выбранной девушки
-  await renderAlbums();
-  // показать выбранные альбомы с материалами
-  await updateMediaPicker();
-  //обновить счетчик сколько осталось отправить писем
-  updateLeftToSendLettersCounter();
-  // обновить конвертер айди
-  updateConverter();
+  try {
+    // обновить тип отправляемых писем
+    await updateLettersTypeSwitcher();
+    // доюавить сохранённую информацию в инпуты
+    await populateLettersInputs();
+    // показать сколько мужчин для отправки писем
+    setAllMenQuantity();
+    //показать альбомы для материалов выбранной девушки
+    await renderAlbums();
+    // показать выбранные альбомы с материалами
+    await updateMediaPicker();
+    //обновить счетчик сколько осталось отправить писем
+    updateLeftToSendLettersCounter();
+    // обновить конвертер айди
+    updateConverter();
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 function onMenuItemClick(e) {
@@ -880,29 +892,33 @@ function onMenuItemClick(e) {
 }
 
 async function setCurrentMenu() {
-  const { currentMenu } = await chrome.storage.local.get();
+  try {
+    const { currentMenu } = await chrome.storage.local.get();
 
-  if (!currentMenu) {
-    return;
-  }
-
-  if (currentMenu === 'letters') {
-    refs.loginAddForm.classList.add('is-hidden');
-    refs.lettersContainer.classList.remove('is-hidden');
-  }
-
-  if (currentMenu === 'accounts') {
-    refs.loginAddForm.classList.remove('is-hidden');
-    refs.lettersContainer.classList.add('is-hidden');
-  }
-
-  [...refs.menu.children].forEach(item => {
-    item.classList.remove('menu-current');
-
-    if (item.children[0].classList.contains(`menu-${currentMenu}`)) {
-      item.classList.add('menu-current');
+    if (!currentMenu) {
+      return;
     }
-  });
+
+    if (currentMenu === 'letters') {
+      refs.loginAddForm.classList.add('is-hidden');
+      refs.lettersContainer.classList.remove('is-hidden');
+    }
+
+    if (currentMenu === 'accounts') {
+      refs.loginAddForm.classList.remove('is-hidden');
+      refs.lettersContainer.classList.add('is-hidden');
+    }
+
+    [...refs.menu.children].forEach(item => {
+      item.classList.remove('menu-current');
+
+      if (item.children[0].classList.contains(`menu-${currentMenu}`)) {
+        item.classList.add('menu-current');
+      }
+    });
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 function setAllMenQuantity() {
@@ -973,138 +989,142 @@ function showSendLettersButton() {
   chrome.storage.local.set({ isLettersSendingOff: true });
 }
 
-async function onSendLettersBtn(e) {
-  const manIdsList = refs.menIds.value.split(',');
-  const letter = refs.letterText.value;
+async function onSendLettersBtn() {
+  try {
+    const manIdsList = refs.menIds.value.split(',');
+    const letter = refs.letterText.value;
 
-  if (manIdsList[0] === '') {
-    refs.noManIdMessage.classList.remove('is-hidden');
-    setTimeout(() => {
-      refs.noManIdMessage.classList.add('is-hidden');
-    }, 3000);
-    return;
-  }
-
-  if (letter.length < 200) {
-    refs.letterSizeMessage.classList.remove('is-hidden');
-    setTimeout(() => {
-      refs.letterSizeMessage.classList.add('is-hidden');
-    }, 3000);
-    return;
-  }
-
-  const { currentId } = await chrome.storage.local.get();
-
-  if (!currentId) {
-    return;
-  }
-
-  const { ladyId } = currentId;
-
-  disableInteractionOnLetterSending();
-
-  chrome.storage.local.set({ isLettersSendingOff: false });
-
-  refs.sendLettersBtn.classList.toggle('is-hidden');
-  refs.stopSendLettersBtn.classList.toggle('is-hidden');
-
-  refs.stopSendLettersBtn.addEventListener('click', onStopSendLettersBtn);
-
-  refs.lettersSentCounter.innerText = 0;
-  refs.lettersNotSentCounter.innerText = 0;
-  refs.lettersLeftToSendCounter.innerText = 0;
-
-  refs.sentInput.value = '';
-  refs.notSentInput.value = '';
-  refs.leftToSendInput.value = refs.menIds.value;
-
-  updateLeftToSendLettersCounter();
-
-  saveLettersInputsInfo();
-
-  hideSendLettersStatuses();
-  refs.lettersStatusSending.classList.remove('is-hidden');
-
-  const currentLadyId = ladyId;
-
-  console.log(currentLadyId);
-  console.log(manIdsList);
-  console.log(letter);
-
-  const gotLettersMenList = [];
-  const didntGetLettersMenList = [];
-  const waitingLettersMenList = [...manIdsList];
-
-  for (let manId of manIdsList) {
-    const { isLettersSendingOff } = await chrome.storage.local.get();
-
-    if (isLettersSendingOff) {
-      break;
+    if (manIdsList[0] === '') {
+      refs.noManIdMessage.classList.remove('is-hidden');
+      setTimeout(() => {
+        refs.noManIdMessage.classList.add('is-hidden');
+      }, 3000);
+      return;
     }
 
-    const res = await sendLetter(manId, currentLadyId, letter);
-
-    const manIdToRemove = waitingLettersMenList.indexOf(manId);
-    waitingLettersMenList.splice(manIdToRemove, 1);
-    refs.leftToSendInput.value = waitingLettersMenList.join(',');
-
-    console.log(res);
-
-    if (res === 'man deleted profile') {
-      didntGetLettersMenList.push(manId);
-      refs.notSentInput.value = didntGetLettersMenList.join(',');
-
-      updateLeftToSendLettersCounter();
-
-      saveLettersInputsInfo();
-
-      const menLeftToSend = calculateMenLeftToSend();
-
-      if (!menLeftToSend) {
-        onLettersSendingFinish();
-        break;
-      }
-      continue;
+    if (letter.length < 200) {
+      refs.letterSizeMessage.classList.remove('is-hidden');
+      setTimeout(() => {
+        refs.letterSizeMessage.classList.add('is-hidden');
+      }, 3000);
+      return;
     }
 
-    if (
-      res.url === 'http://www.charmdate.com/clagt/emf_error.php' ||
-      res.url === 'http://www.charmdate.com/clagt/cupidnote/error_msg.php'
-    ) {
-      console.error(
-        `Что-то пошло не так, возможно мужчина ${manId} удалил свой профиль или мужчине уже было недавно отправлено письмо`
-      );
-      updateNotSentLettersCounter();
-      didntGetLettersMenList.push(manId);
-      refs.notSentInput.value = didntGetLettersMenList.join(',');
+    const { currentId } = await chrome.storage.local.get();
 
-      updateLeftToSendLettersCounter();
-
-      saveLettersInputsInfo();
-
-      const menLeftToSend = calculateMenLeftToSend();
-
-      if (!menLeftToSend) {
-        onLettersSendingFinish();
-        break;
-      }
-      continue;
+    if (!currentId) {
+      return;
     }
 
-    updateSentLettersCounter();
-    gotLettersMenList.push(manId);
-    refs.sentInput.value = gotLettersMenList.join(',');
+    const { ladyId } = currentId;
+
+    disableInteractionOnLetterSending();
+
+    chrome.storage.local.set({ isLettersSendingOff: false });
+
+    refs.sendLettersBtn.classList.toggle('is-hidden');
+    refs.stopSendLettersBtn.classList.toggle('is-hidden');
+
+    refs.stopSendLettersBtn.addEventListener('click', onStopSendLettersBtn);
+
+    refs.lettersSentCounter.innerText = 0;
+    refs.lettersNotSentCounter.innerText = 0;
+    refs.lettersLeftToSendCounter.innerText = 0;
+
+    refs.sentInput.value = '';
+    refs.notSentInput.value = '';
+    refs.leftToSendInput.value = refs.menIds.value;
 
     updateLeftToSendLettersCounter();
 
     saveLettersInputsInfo();
 
-    const menLeftToSend = calculateMenLeftToSend();
+    hideSendLettersStatuses();
+    refs.lettersStatusSending.classList.remove('is-hidden');
 
-    if (!menLeftToSend) {
-      onLettersSendingFinish();
-      break;
+    const currentLadyId = ladyId;
+
+    console.log(currentLadyId);
+    console.log(manIdsList);
+    console.log(letter);
+
+    const gotLettersMenList = [];
+    const didntGetLettersMenList = [];
+    const waitingLettersMenList = [...manIdsList];
+
+    for (let manId of manIdsList) {
+      const { isLettersSendingOff } = await chrome.storage.local.get();
+
+      if (isLettersSendingOff) {
+        break;
+      }
+
+      const res = await sendLetter(manId, currentLadyId, letter);
+
+      const manIdToRemove = waitingLettersMenList.indexOf(manId);
+      waitingLettersMenList.splice(manIdToRemove, 1);
+      refs.leftToSendInput.value = waitingLettersMenList.join(',');
+
+      console.log(res);
+
+      if (res === 'man deleted profile') {
+        didntGetLettersMenList.push(manId);
+        refs.notSentInput.value = didntGetLettersMenList.join(',');
+
+        updateLeftToSendLettersCounter();
+
+        saveLettersInputsInfo();
+
+        const menLeftToSend = calculateMenLeftToSend();
+
+        if (!menLeftToSend) {
+          onLettersSendingFinish();
+          break;
+        }
+        continue;
+      }
+
+      if (
+        res.url === 'http://www.charmdate.com/clagt/emf_error.php' ||
+        res.url === 'http://www.charmdate.com/clagt/cupidnote/error_msg.php'
+      ) {
+        console.error(
+          `Что-то пошло не так, возможно мужчина ${manId} удалил свой профиль или мужчине уже было недавно отправлено письмо`
+        );
+        updateNotSentLettersCounter();
+        didntGetLettersMenList.push(manId);
+        refs.notSentInput.value = didntGetLettersMenList.join(',');
+
+        updateLeftToSendLettersCounter();
+
+        saveLettersInputsInfo();
+
+        const menLeftToSend = calculateMenLeftToSend();
+
+        if (!menLeftToSend) {
+          onLettersSendingFinish();
+          break;
+        }
+        continue;
+      }
+
+      updateSentLettersCounter();
+      gotLettersMenList.push(manId);
+      refs.sentInput.value = gotLettersMenList.join(',');
+
+      updateLeftToSendLettersCounter();
+
+      saveLettersInputsInfo();
+
+      const menLeftToSend = calculateMenLeftToSend();
+
+      if (!menLeftToSend) {
+        onLettersSendingFinish();
+        break;
+      }
     }
+  } catch (error) {
+    console.log(error);
   }
 }
 
@@ -1118,100 +1138,104 @@ function calculateMenLeftToSend() {
 }
 
 async function sendLetter(originalManId, currentLadyId, originalLetter) {
-  const { currentLettersType = 'EMF' } = await chrome.storage.local.get();
-  let manId = null;
+  try {
+    const { currentLettersType = 'EMF' } = await chrome.storage.local.get();
+    let manId = null;
 
-  if (currentLettersType === EMF_LETTER_TYPE) {
-    manId = originalManId.split('_')[0];
-  } else if (currentLettersType === SAYHI_LETTER_TYPE) {
-    manId = originalManId.split('-')[0];
-  }
+    if (currentLettersType === EMF_LETTER_TYPE) {
+      manId = originalManId.split('_')[0];
+    } else if (currentLettersType === SAYHI_LETTER_TYPE) {
+      manId = originalManId.split('-')[0];
+    }
 
-  const manInfo = await getManInfoById(manId);
+    const manInfo = await getManInfoById(manId);
 
-  if (!manInfo) {
-    console.error(`Что-то пошло не так, возможно мужчина ${manId} удалил свой профиль`);
-    updateLeftToSendLettersCounter();
-    return 'man deleted profile';
-  }
+    if (!manInfo) {
+      console.error(`Что-то пошло не так, возможно мужчина ${manId} удалил свой профиль`);
+      updateLeftToSendLettersCounter();
+      return 'man deleted profile';
+    }
 
-  let { manName, manLiving } = manInfo;
+    let { manName, manLiving } = manInfo;
 
-  const availableFreePhotos = await getFreePhotosByLadyId(currentLadyId);
-  const availablePaidPhotos = await getPaidPhotosByManId(manId, currentLadyId);
-  const availableVideos = await getVideosByManId(manId, currentLadyId);
+    const availableFreePhotos = await getFreePhotosByLadyId(currentLadyId);
+    const availablePaidPhotos = await getPaidPhotosByManId(manId, currentLadyId);
+    const availableVideos = await getVideosByManId(manId, currentLadyId);
 
-  const randomFreePhoto = availableFreePhotos[getRandomNumber(0, availableFreePhotos.length - 1)];
-  const randomFirstPaidPhoto = availablePaidPhotos[0];
-  const randomSecondPaidPhoto = availablePaidPhotos[1];
-  const randomThirdPaidPhoto = availablePaidPhotos[2];
-  const randomVideo = availableVideos[getRandomNumber(0, availableVideos.length - 1)];
+    const randomFreePhoto = availableFreePhotos[getRandomNumber(0, availableFreePhotos.length - 1)];
+    const randomFirstPaidPhoto = availablePaidPhotos[0];
+    const randomSecondPaidPhoto = availablePaidPhotos[1];
+    const randomThirdPaidPhoto = availablePaidPhotos[2];
+    const randomVideo = availableVideos[getRandomNumber(0, availableVideos.length - 1)];
 
-  const freePhotoName = !randomFreePhoto
-    ? ''
-    : randomFreePhoto.padEnd(randomFreePhoto.length + 1, '|');
-  const firstPaidPhotoName = !randomFirstPaidPhoto
-    ? ''
-    : randomFirstPaidPhoto.padEnd(randomFirstPaidPhoto.length + 1, '|');
-  const secondPaidPhotoName = !randomSecondPaidPhoto
-    ? ''
-    : randomSecondPaidPhoto.padEnd(randomSecondPaidPhoto.length + 1, '|');
-  const thirdPaidPhotoName = !randomThirdPaidPhoto
-    ? ''
-    : randomThirdPaidPhoto.padEnd(randomThirdPaidPhoto.length + 1, '|');
-  const videoName = !randomVideo ? '' : randomVideo.padEnd(randomVideo.length + 1, '|');
+    const freePhotoName = !randomFreePhoto
+      ? ''
+      : randomFreePhoto.padEnd(randomFreePhoto.length + 1, '|');
+    const firstPaidPhotoName = !randomFirstPaidPhoto
+      ? ''
+      : randomFirstPaidPhoto.padEnd(randomFirstPaidPhoto.length + 1, '|');
+    const secondPaidPhotoName = !randomSecondPaidPhoto
+      ? ''
+      : randomSecondPaidPhoto.padEnd(randomSecondPaidPhoto.length + 1, '|');
+    const thirdPaidPhotoName = !randomThirdPaidPhoto
+      ? ''
+      : randomThirdPaidPhoto.padEnd(randomThirdPaidPhoto.length + 1, '|');
+    const videoName = !randomVideo ? '' : randomVideo.padEnd(randomVideo.length + 1, '|');
 
-  if (originalManId.split('_')[1]) {
-    manName = originalManId.split('_')[1];
-  }
+    if (originalManId.split('_')[1]) {
+      manName = originalManId.split('_')[1];
+    }
 
-  const firstCapitalLetter = manName.split('')[0].toUpperCase();
-  const slicedName = manName.slice(1, manName.length).toLowerCase();
+    const firstCapitalLetter = manName.split('')[0].toUpperCase();
+    const slicedName = manName.slice(1, manName.length).toLowerCase();
 
-  manName = firstCapitalLetter + slicedName;
+    manName = firstCapitalLetter + slicedName;
 
-  let letter = originalLetter;
+    let letter = originalLetter;
 
-  if (!manLiving || manLiving === '') {
-    letter = originalLetter.replaceAll('{name}', manName);
-  } else {
-    letter = originalLetter.replaceAll('{name}', manName).replaceAll('{living}', manLiving);
-  }
+    if (!manLiving || manLiving === '') {
+      letter = originalLetter.replaceAll('{name}', manName);
+    } else {
+      letter = originalLetter.replaceAll('{name}', manName).replaceAll('{living}', manLiving);
+    }
 
-  let sendLetterInfo = {};
+    let sendLetterInfo = {};
 
-  if (freePhotoName === '') {
-    sendLetterInfo = {
-      currentLadyId,
-      manId,
-      letter,
-      freePhotoName,
-      firstPaidPhotoName: '',
-      secondPaidPhotoName: '',
-      thirdPaidPhotoName: '',
-      videoName: '',
-      originalManId,
-    };
-  } else {
-    sendLetterInfo = {
-      currentLadyId,
-      manId,
-      letter,
-      freePhotoName,
-      firstPaidPhotoName,
-      secondPaidPhotoName,
-      thirdPaidPhotoName,
-      videoName,
-      originalManId,
-    };
-  }
+    if (freePhotoName === '') {
+      sendLetterInfo = {
+        currentLadyId,
+        manId,
+        letter,
+        freePhotoName,
+        firstPaidPhotoName: '',
+        secondPaidPhotoName: '',
+        thirdPaidPhotoName: '',
+        videoName: '',
+        originalManId,
+      };
+    } else {
+      sendLetterInfo = {
+        currentLadyId,
+        manId,
+        letter,
+        freePhotoName,
+        firstPaidPhotoName,
+        secondPaidPhotoName,
+        thirdPaidPhotoName,
+        videoName,
+        originalManId,
+      };
+    }
 
-  console.log(sendLetterInfo);
+    console.log(sendLetterInfo);
 
-  if (currentLettersType === 'EMF') {
-    return await makeSendLetterRequest(sendLetterInfo);
-  } else if (currentLettersType === 'SayHi') {
-    return await makeSendSayHiRequest(sendLetterInfo);
+    if (currentLettersType === EMF_LETTER_TYPE) {
+      return await makeSendLetterRequest(sendLetterInfo);
+    } else if (currentLettersType === SAYHI_LETTER_TYPE) {
+      return await makeSendSayHiRequest(sendLetterInfo);
+    }
+  } catch (error) {
+    console.log(error);
   }
 }
 
@@ -1271,38 +1295,46 @@ async function makeSendSayHiRequest({ originalManId, letter, freePhotoName }) {
 }
 
 async function getFreePhotosByLadyId(currentLadyId) {
-  const {
-    savedAlbums: { freeAlbums = [] },
-  } = await chrome.storage.local.get();
+  try {
+    const {
+      savedAlbums: { freeAlbums = [] },
+    } = await chrome.storage.local.get();
 
-  if (freeAlbums.length === 0) {
-    return [];
+    if (freeAlbums.length === 0) {
+      return [];
+    }
+
+    const freePhotos = await fetch(
+      `http://www.charmdate.com/clagt/get-images.php?action=images&womanid=${currentLadyId}`
+    ).then(r => r.json());
+
+    return filterMedia(freeAlbums, freePhotos);
+  } catch (error) {
+    console.log(error);
   }
-
-  const freePhotos = await fetch(
-    `http://www.charmdate.com/clagt/get-images.php?action=images&womanid=${currentLadyId}`
-  ).then(r => r.json());
-
-  return filterMedia(freeAlbums, freePhotos);
 }
 
 async function getPaidPhotosByManId(manId, currentLadyId) {
-  const {
-    savedAlbums: { paidAlbums = [] },
-  } = await chrome.storage.local.get();
+  try {
+    const {
+      savedAlbums: { paidAlbums = [] },
+    } = await chrome.storage.local.get();
 
-  if (paidAlbums.length === 0) {
-    return [];
+    if (paidAlbums.length === 0) {
+      return [];
+    }
+
+    const paidPhotos = await fetch(
+      `http://www.charmdate.com/clagt/get-private-images.php?action=images&womanid=${currentLadyId}&manid=${manId}&_dc=`
+    ).then(r => r.json());
+
+    const filteredPhotos = await filterMedia(paidAlbums, paidPhotos);
+    const shuffledPhotos = shuffle(filteredPhotos).slice(0, 3);
+
+    return shuffledPhotos;
+  } catch (error) {
+    console.log(error);
   }
-
-  const paidPhotos = await fetch(
-    `http://www.charmdate.com/clagt/get-private-images.php?action=images&womanid=${currentLadyId}&manid=${manId}&_dc=`
-  ).then(r => r.json());
-
-  const filteredPhotos = await filterMedia(paidAlbums, paidPhotos);
-  const shuffledPhotos = shuffle(filteredPhotos).slice(0, 3);
-
-  return shuffledPhotos;
 }
 
 function shuffle(array) {
@@ -1311,22 +1343,26 @@ function shuffle(array) {
 }
 
 async function getVideosByManId(manId, currentLadyId) {
-  const {
-    savedAlbums: { videosAlbums = [] },
-  } = await chrome.storage.local.get();
+  try {
+    const {
+      savedAlbums: { videosAlbums = [] },
+    } = await chrome.storage.local.get();
 
-  if (videosAlbums.length === 0) {
-    return [];
+    if (videosAlbums.length === 0) {
+      return [];
+    }
+
+    const videos = await fetch(
+      `http://www.charmdate.com/clagt/get-short-video.php?action=images&womanid=${currentLadyId}&manid=${manId}&_dc=`
+    ).then(r => r.json());
+
+    return filterMedia(videosAlbums, videos);
+  } catch (error) {
+    console.log(error);
   }
-
-  const videos = await fetch(
-    `http://www.charmdate.com/clagt/get-short-video.php?action=images&womanid=${currentLadyId}&manid=${manId}&_dc=`
-  ).then(r => r.json());
-
-  return filterMedia(videosAlbums, videos);
 }
 
-async function filterMedia(albumsIds, media) {
+function filterMedia(albumsIds, media) {
   const filteredMedia = albumsIds.reduce((acc, albumId) => {
     const matchMedia = media.images.filter(mediaItem => mediaItem.albumid === albumId);
     acc.push(...matchMedia);
@@ -1338,7 +1374,7 @@ async function filterMedia(albumsIds, media) {
   return mediaNames;
 }
 
-async function getManInfoById(manId) {
+function getManInfoById(manId) {
   const options = {
     method: 'POST',
     body: `manid=${manId}`,
@@ -1359,7 +1395,7 @@ async function getManInfoById(manId) {
 
       return { manName, manLiving };
     })
-    .catch(e => {
+    .catch(error => {
       updateNotSentLettersCounter();
     });
 }
@@ -1406,39 +1442,44 @@ function onLettersSendingFinish() {
 }
 
 async function renderAlbums() {
-  const { currentId, savedAlbums } = await chrome.storage.local.get();
+  try {
+    const { currentId, savedAlbums } = await chrome.storage.local.get();
 
-  if (!currentId) {
-    return;
-  }
-
-  const { freeAlbums = [] } = savedAlbums;
-  const { ladyId: currentLadyId } = currentId;
-
-  const freeAlbumsMarkup = await makeFreeAlbumsMarkup(currentLadyId);
-  const paidAlbumsMarkup = await makePaidAlbumsMarkup(currentLadyId);
-  const videosAlbumsMarkup = await makeVideoAlbumsMarkup(currentLadyId);
-
-  refs.freePhotosMediaList.innerHTML = freeAlbumsMarkup;
-  refs.paidPhotosMediaList.innerHTML = paidAlbumsMarkup;
-  refs.videosMediaList.innerHTML = videosAlbumsMarkup;
-
-  if (freeAlbums.length === 0) {
-    const checkboxFreeEl = document.querySelectorAll('input.checkbox-free');
-
-    if (!checkboxFreeEl[0]) {
+    if (!currentId) {
       return;
     }
 
-    checkboxFreeEl[0].click();
+    const { freeAlbums = [] } = savedAlbums;
+    const { ladyId: currentLadyId } = currentId;
+
+    const freeAlbumsMarkup = await makeFreeAlbumsMarkup(currentLadyId);
+    const paidAlbumsMarkup = await makePaidAlbumsMarkup(currentLadyId);
+    const videosAlbumsMarkup = await makeVideoAlbumsMarkup(currentLadyId);
+
+    refs.freePhotosMediaList.innerHTML = freeAlbumsMarkup;
+    refs.paidPhotosMediaList.innerHTML = paidAlbumsMarkup;
+    refs.videosMediaList.innerHTML = videosAlbumsMarkup;
+
+    if (freeAlbums.length === 0) {
+      const checkboxFreeEl = document.querySelectorAll('input.checkbox-free');
+
+      if (!checkboxFreeEl[0]) {
+        return;
+      }
+
+      checkboxFreeEl[0].click();
+    }
+  } catch (error) {
+    console.log(error);
   }
 }
 
 async function makeFreeAlbumsMarkup(currentLadyId) {
-  const freeAlbums = await getAllFreeAlbums(currentLadyId);
+  try {
+    const freeAlbums = await getAllFreeAlbums(currentLadyId);
 
-  return freeAlbums.thumb.reduce((acc, { albumid, name, num }) => {
-    const markup = `<div class="media-item">
+    return freeAlbums.thumb.reduce((acc, { albumid, name, num }) => {
+      const markup = `<div class="media-item">
                       <label class="media-custom-checkbox" for="${albumid}"
                         ><input type="checkbox" id="${albumid}" class="media-original-checkbox checkbox-free"/><span
                           >${name} <span>(${num})</span></span
@@ -1446,15 +1487,19 @@ async function makeFreeAlbumsMarkup(currentLadyId) {
                       >
                     </div>`;
 
-    return (acc += markup);
-  }, '');
+      return (acc += markup);
+    }, '');
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 async function makePaidAlbumsMarkup(currentLadyId) {
-  const paidAlbums = await getAllPaidAlbums(currentLadyId);
+  try {
+    const paidAlbums = await getAllPaidAlbums(currentLadyId);
 
-  return paidAlbums.thumb.reduce((acc, { albumid, name, num }) => {
-    const markup = `<div class="media-item">
+    return paidAlbums.thumb.reduce((acc, { albumid, name, num }) => {
+      const markup = `<div class="media-item">
                       <label class="media-custom-checkbox" for="${albumid}"
                         ><input type="checkbox" id="${albumid}" class="media-original-checkbox checkbox-paid"/><span
                           >${name} <span>(${num})</span></span
@@ -1462,15 +1507,19 @@ async function makePaidAlbumsMarkup(currentLadyId) {
                       >
                     </div>`;
 
-    return (acc += markup);
-  }, '');
+      return (acc += markup);
+    }, '');
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 async function makeVideoAlbumsMarkup(currentLadyId) {
-  const videosAlbums = await getAllVideoAlbums(currentLadyId);
+  try {
+    const videosAlbums = await getAllVideoAlbums(currentLadyId);
 
-  return videosAlbums.thumb.reduce((acc, { albumid, name, num }) => {
-    const markup = `<div class="media-item">
+    return videosAlbums.thumb.reduce((acc, { albumid, name, num }) => {
+      const markup = `<div class="media-item">
                       <label class="media-custom-checkbox" for="${albumid}"
                         ><input type="checkbox" id="${albumid}" class="media-original-checkbox checkbox-video"/><span
                           >${name} <span>(${num})</span></span
@@ -1478,8 +1527,11 @@ async function makeVideoAlbumsMarkup(currentLadyId) {
                       >
                     </div>`;
 
-    return (acc += markup);
-  }, '');
+      return (acc += markup);
+    }, '');
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 async function getAllVideoAlbums(currentLadyId) {
@@ -1501,120 +1553,128 @@ async function getAllFreeAlbums(currentLadyId) {
 }
 
 async function onMediaPickerClick(e) {
-  if (!e.target.classList.contains('media-original-checkbox')) {
-    return;
+  try {
+    if (!e.target.classList.contains('media-original-checkbox')) {
+      return;
+    }
+
+    const mediaType = e.target.parentElement.parentElement.parentElement;
+
+    const { savedAlbums = {} } = await chrome.storage.local.get();
+
+    let albumsToUpdate = {};
+
+    if (mediaType.classList.contains('free-photo-list')) {
+      let { freeAlbums = [] } = savedAlbums;
+
+      const freeAlbumsSet = new Set(freeAlbums);
+
+      if (e.target.checked) {
+        freeAlbumsSet.add(e.target.id);
+      }
+
+      if (!e.target.checked) {
+        freeAlbumsSet.delete(e.target.id);
+      }
+
+      freeAlbums = [...freeAlbumsSet];
+
+      albumsToUpdate = {
+        ...savedAlbums,
+        freeAlbums,
+      };
+    }
+
+    if (mediaType.classList.contains('paid-photo-list')) {
+      let paidAlbums = savedAlbums?.paidAlbums || [];
+
+      const paidAlbumsSet = new Set(paidAlbums);
+
+      if (e.target.checked) {
+        paidAlbumsSet.add(e.target.id);
+      }
+
+      if (!e.target.checked) {
+        paidAlbumsSet.delete(e.target.id);
+      }
+
+      paidAlbums = [...paidAlbumsSet];
+
+      albumsToUpdate = {
+        ...savedAlbums,
+        paidAlbums,
+      };
+    }
+
+    if (mediaType.classList.contains('videos-list')) {
+      let videosAlbums = savedAlbums?.videosAlbums || [];
+
+      const videosAlbumsSet = new Set(videosAlbums);
+
+      if (e.target.checked) {
+        videosAlbumsSet.add(e.target.id);
+      }
+
+      if (!e.target.checked) {
+        videosAlbumsSet.delete(e.target.id);
+      }
+
+      videosAlbums = [...videosAlbumsSet];
+
+      albumsToUpdate = {
+        ...savedAlbums,
+        videosAlbums,
+      };
+    }
+
+    chrome.storage.local.set({ savedAlbums: albumsToUpdate });
+  } catch (error) {
+    console.log(error);
   }
-
-  const mediaType = e.target.parentElement.parentElement.parentElement;
-
-  const { savedAlbums = {} } = await chrome.storage.local.get();
-
-  let albumsToUpdate = {};
-
-  if (mediaType.classList.contains('free-photo-list')) {
-    let { freeAlbums = [] } = savedAlbums;
-
-    const freeAlbumsSet = new Set(freeAlbums);
-
-    if (e.target.checked) {
-      freeAlbumsSet.add(e.target.id);
-    }
-
-    if (!e.target.checked) {
-      freeAlbumsSet.delete(e.target.id);
-    }
-
-    freeAlbums = [...freeAlbumsSet];
-
-    albumsToUpdate = {
-      ...savedAlbums,
-      freeAlbums,
-    };
-  }
-
-  if (mediaType.classList.contains('paid-photo-list')) {
-    let paidAlbums = savedAlbums?.paidAlbums || [];
-
-    const paidAlbumsSet = new Set(paidAlbums);
-
-    if (e.target.checked) {
-      paidAlbumsSet.add(e.target.id);
-    }
-
-    if (!e.target.checked) {
-      paidAlbumsSet.delete(e.target.id);
-    }
-
-    paidAlbums = [...paidAlbumsSet];
-
-    albumsToUpdate = {
-      ...savedAlbums,
-      paidAlbums,
-    };
-  }
-
-  if (mediaType.classList.contains('videos-list')) {
-    let videosAlbums = savedAlbums?.videosAlbums || [];
-
-    const videosAlbumsSet = new Set(videosAlbums);
-
-    if (e.target.checked) {
-      videosAlbumsSet.add(e.target.id);
-    }
-
-    if (!e.target.checked) {
-      videosAlbumsSet.delete(e.target.id);
-    }
-
-    videosAlbums = [...videosAlbumsSet];
-
-    albumsToUpdate = {
-      ...savedAlbums,
-      videosAlbums,
-    };
-  }
-
-  chrome.storage.local.set({ savedAlbums: albumsToUpdate });
 }
 
 async function updateMediaPicker() {
-  const { savedAlbums } = await chrome.storage.local.get();
-  const checkboxFreeEl = document.querySelectorAll('input.checkbox-free');
-  const checkboxPaidEl = document.querySelectorAll('.checkbox-paid');
-  const checkboxVideoEl = document.querySelectorAll('.checkbox-video');
+  try {
+    const { savedAlbums } = await chrome.storage.local.get();
+    const checkboxFreeEl = document.querySelectorAll('input.checkbox-free');
+    const checkboxPaidEl = document.querySelectorAll('.checkbox-paid');
+    const checkboxVideoEl = document.querySelectorAll('.checkbox-video');
 
-  checkboxFreeEl.forEach(el => {
-    if (!savedAlbums?.freeAlbums) {
-      return;
-    }
-    savedAlbums?.freeAlbums.forEach(id => {
-      if (el.id === id) {
-        el.checked = true;
+    checkboxFreeEl.forEach(el => {
+      if (!savedAlbums?.freeAlbums) {
+        return;
       }
+      savedAlbums?.freeAlbums.forEach(id => {
+        if (el.id === id) {
+          el.checked = true;
+        }
+      });
     });
-  });
 
-  checkboxPaidEl.forEach(el => {
-    if (!savedAlbums?.paidAlbums) {
-      return;
-    }
-    savedAlbums?.paidAlbums.forEach(id => {
-      if (el.id === id) {
-        el.checked = true;
+    checkboxPaidEl.forEach(el => {
+      if (!savedAlbums?.paidAlbums) {
+        return;
       }
+      savedAlbums?.paidAlbums.forEach(id => {
+        if (el.id === id) {
+          el.checked = true;
+        }
+      });
     });
-  });
 
-  checkboxVideoEl.forEach(el => {
-    if (!savedAlbums?.videosAlbums) {
-      return;
-    }
-    savedAlbums?.videosAlbums.forEach(id => {
-      if (el.id === id) {
-        el.checked = true;
+    checkboxVideoEl.forEach(el => {
+      if (!savedAlbums?.videosAlbums) {
+        return;
       }
+      savedAlbums?.videosAlbums.forEach(id => {
+        if (el.id === id) {
+          el.checked = true;
+        }
+      });
     });
-  });
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 function updateCurrentWomanId(womanId) {
@@ -1661,19 +1721,23 @@ function onLetterTypeSwitch(e) {
 }
 
 async function updateLettersTypeSwitcher() {
-  const { currentLettersType = 'EMF' } = await chrome.storage.local.get();
+  try {
+    const { currentLettersType = 'EMF' } = await chrome.storage.local.get();
 
-  refs.sendLettersBtn.dataset.action = currentLettersType;
+    refs.sendLettersBtn.dataset.action = currentLettersType;
 
-  if (currentLettersType === 'EMF') {
-    refs.letterTypeEMF.checked = true;
-    refs.menIds.placeholder = 'CM55826251,CM17388307_Derek,CM90827940';
-  }
+    if (currentLettersType === 'EMF') {
+      refs.letterTypeEMF.checked = true;
+      refs.menIds.placeholder = 'CM55826251,CM17388307_Derek,CM90827940';
+    }
 
-  if (currentLettersType === 'SayHi') {
-    refs.letterTypeSayHi.checked = true;
-    refs.menIds.placeholder =
-      'CM67229642-2306020653689,CM48050480-2305311789139,CM99658238-2305310392811';
+    if (currentLettersType === 'SayHi') {
+      refs.letterTypeSayHi.checked = true;
+      refs.menIds.placeholder =
+        'CM67229642-2306020653689,CM48050480-2305311789139,CM99658238-2305310392811';
+    }
+  } catch (error) {
+    console.log(error);
   }
 }
 
@@ -1740,38 +1804,42 @@ function onConverterIdsInput(e) {
 }
 
 async function updateConverter() {
-  const { converterInput = '', converterType = 'converter-first' } =
-    await chrome.storage.local.get();
+  try {
+    const { converterInput = '', converterType = 'converter-first' } =
+      await chrome.storage.local.get();
 
-  refs.converterInput.value = converterInput;
-  refs.converterBtn.dataset.action = converterType;
+    refs.converterInput.value = converterInput;
+    refs.converterBtn.dataset.action = converterType;
 
-  [...refs.converterTypes.children].forEach(type => {
-    const typeOption = type.children[0];
-    if (typeOption.id === converterType) {
-      typeOption.checked = true;
-    }
-  });
+    [...refs.converterTypes.children].forEach(type => {
+      const typeOption = type.children[0];
+      if (typeOption.id === converterType) {
+        typeOption.checked = true;
+      }
+    });
 
-  if (converterType === 'converter-first')
-    refs.converterInput.placeholder =
-      'Пример:\nCM99754408(Axel)\nCM763054(atypique)\nCM88775226(Jostein)\nCM26836230(Matthew)\nCM95519223(Tommy)\n';
+    if (converterType === 'converter-first')
+      refs.converterInput.placeholder =
+        'Пример:\nCM99754408(Axel)\nCM763054(atypique)\nCM88775226(Jostein)\nCM26836230(Matthew)\nCM95519223(Tommy)\n';
 
-  if (converterType === 'converter-norecent')
-    refs.converterInput.placeholder =
-      'Пример:\nCM49101549 ( Zbynek )\nCM68500997 ( Adil )\nCM10213781 ( John )\nCM88740052 ( JOHN )\nCM48212021 ( John )\n';
+    if (converterType === 'converter-norecent')
+      refs.converterInput.placeholder =
+        'Пример:\nCM49101549 ( Zbynek )\nCM68500997 ( Adil )\nCM10213781 ( John )\nCM88740052 ( JOHN )\nCM48212021 ( John )\n';
 
-  if (converterType === 'converter-incoming')
-    refs.converterInput.placeholder =
-      'Пример:\n  Tony CM40844922 -- Yana C130360\n  Paul CM90761760 -- Yana C130360\n  Patrick CM18471299 -- Yana C130360\n  Dale CM99445614 -- Yana C130360 With attachment\n  Kurt CM10580664 -- Yana C130360\n';
+    if (converterType === 'converter-incoming')
+      refs.converterInput.placeholder =
+        'Пример:\n  Tony CM40844922 -- Yana C130360\n  Paul CM90761760 -- Yana C130360\n  Patrick CM18471299 -- Yana C130360\n  Dale CM99445614 -- Yana C130360 With attachment\n  Kurt CM10580664 -- Yana C130360\n';
 
-  if (converterType === 'converter-sayhi')
-    refs.converterInput.placeholder =
-      'Пример:\nCM48050480-2305311789139\nCM99658238-2305310392811\nCM72975675-2305310118770\nCM58287039-2305300797883\nCM53355441-2305290255525\n';
+    if (converterType === 'converter-sayhi')
+      refs.converterInput.placeholder =
+        'Пример:\nCM48050480-2305311789139\nCM99658238-2305310392811\nCM72975675-2305310118770\nCM58287039-2305300797883\nCM53355441-2305290255525\n';
 
-  if (converterType === 'converter-google')
-    refs.converterInput.placeholder =
-      'Пример:\nCM17556467\nCM82962910\nCM52460740\nCM88678016\nCM99483657\n';
+    if (converterType === 'converter-google')
+      refs.converterInput.placeholder =
+        'Пример:\nCM17556467\nCM82962910\nCM52460740\nCM88678016\nCM99483657\n';
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 function clearAllMediaData() {
