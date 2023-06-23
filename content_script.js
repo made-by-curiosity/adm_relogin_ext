@@ -1,10 +1,3 @@
-const urls = {
-  loginPageUrl: 'http://www.charmdate.com/clagt/loginb.htm',
-  ladyPageOnLoadPath: '/clagt/woman/women_profiles_allow_edit.php',
-  overviewPageUrl: 'http://www.charmdate.com/clagt/overview.php?menu1=1',
-  activeChatUrl: 'http://www.charmdate.com/clagt/livechat/index.php?action=live',
-};
-
 const refs = {
   agencyIdInput: document.querySelector('input[name="agentid"]'),
   staffIdInput: document.querySelector('input[name="staff_id"]'),

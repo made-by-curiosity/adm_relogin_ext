@@ -58,10 +58,14 @@ const refs = {
 
 // 90 days (in ms)
 const EMF_SEARCH_DAYS_DIFFERENCE = 7776000000;
+const EMF_LETTER_TYPE = 'EMF';
+const SAYHI_LETTER_TYPE = 'SayHi';
 
 const port = chrome.runtime.connect({ name: 'exchangeData' });
 
 updatePopup();
+
+// !-ДОБАВЛЕНИЕ АККАУНТОВ И ПЕРЕЗАХОД-!
 
 // Сохраняем состояние переключателя
 refs.switchButton.addEventListener('click', onReloginSwitcherClick);
@@ -83,6 +87,40 @@ refs.loginsContainer.addEventListener('click', onLoginBtnClick);
 
 // скрыть основное меню
 refs.hideMenuTrigger.addEventListener('click', onMenuHide);
+
+// !-ОТПРАВКА ПИСЕМ-!
+
+// переключаем вкладки меню
+refs.menu.addEventListener('click', onMenuItemClick);
+
+// сохраняем вводимое письмо в стор
+refs.lettersContainer.addEventListener('input', onLettersInput);
+
+// запускаем отправку писем
+refs.sendLettersBtn.addEventListener('click', onSendLettersBtn);
+
+// выбираем медиа материалы
+refs.mediaContainer.addEventListener('click', onMediaPickerClick);
+
+// переключаемся между видами писем
+refs.letterTypes.addEventListener('change', onLetterTypeSwitch);
+
+// !--- ID converter
+
+// переключиться на конвертер айдишников
+refs.converterOpen.addEventListener('click', onConverterShow);
+
+// вернуться в меню отправки писем
+refs.converterBack.addEventListener('click', onConverterReturn);
+
+// переключаем тип копируемых айдишников
+refs.converterTypes.addEventListener('change', onConverterTypeChange);
+
+// конвертируем айдишники
+refs.converterBtn.addEventListener('click', onConverterBtnClick);
+
+// сохраняем вводимые айдишники
+refs.converterInput.addEventListener('input', onConverterIdsInput);
 
 async function updatePopup() {
   refs.loginsContainer.innerHTML = '';
@@ -147,18 +185,22 @@ function renderPagesSelects() {
 
 // рисуем селекты с ссылками с леди айди
 async function renderLadyPagesSelects() {
-  const { currentId } = await chrome.storage.local.get();
+  try {
+    const { currentId } = await chrome.storage.local.get();
 
-  if (!currentId) {
-    refs.ladySelectGroup.innerHTML = '';
-    return;
+    if (!currentId) {
+      refs.ladySelectGroup.innerHTML = '';
+      return;
+    }
+
+    const { ladyId } = currentId;
+
+    const ladySelectMarkup = createPagesLadyOptionsMarkup(ladyId);
+
+    refs.ladySelectGroup.innerHTML = ladySelectMarkup;
+  } catch (error) {
+    console.log(error);
   }
-
-  const { ladyId } = currentId;
-
-  const ladySelectMarkup = createPagesLadyOptionsMarkup(ladyId);
-
-  refs.ladySelectGroup.innerHTML = ladySelectMarkup;
 }
 
 // проверяем выбранный селект
@@ -792,18 +834,6 @@ function createPagesOptionsMarkup() {
 	`;
 }
 
-// !-ОТПРАВКА ПИСЕМ-!
-
-refs.menu.addEventListener('click', onMenuItemClick);
-
-refs.lettersContainer.addEventListener('input', onLettersInput);
-
-refs.sendLettersBtn.addEventListener('click', onSendLettersBtn);
-
-refs.mediaContainer.addEventListener('click', onMediaPickerClick);
-
-refs.letterTypes.addEventListener('change', onLetterTypeSwitch);
-
 async function updateLettersMenu() {
   // обновить тип отправляемых писем
   await updateLettersTypeSwitcher();
@@ -1018,7 +1048,6 @@ async function onSendLettersBtn(e) {
     waitingLettersMenList.splice(manIdToRemove, 1);
     refs.leftToSendInput.value = waitingLettersMenList.join(',');
 
-    // !--от сюда
     console.log(res);
 
     if (res === 'man deleted profile') {
@@ -1062,8 +1091,6 @@ async function onSendLettersBtn(e) {
       continue;
     }
 
-    // !--до сюда
-
     updateSentLettersCounter();
     gotLettersMenList.push(manId);
     refs.sentInput.value = gotLettersMenList.join(',');
@@ -1094,9 +1121,9 @@ async function sendLetter(originalManId, currentLadyId, originalLetter) {
   const { currentLettersType = 'EMF' } = await chrome.storage.local.get();
   let manId = null;
 
-  if (currentLettersType === 'EMF') {
+  if (currentLettersType === EMF_LETTER_TYPE) {
     manId = originalManId.split('_')[0];
-  } else if (currentLettersType === 'SayHi') {
+  } else if (currentLettersType === SAYHI_LETTER_TYPE) {
     manId = originalManId.split('-')[0];
   }
 
@@ -1651,12 +1678,6 @@ async function updateLettersTypeSwitcher() {
 }
 
 // !--- ID converter
-
-refs.converterOpen.addEventListener('click', onConverterShow);
-refs.converterBack.addEventListener('click', onConverterReturn);
-refs.converterTypes.addEventListener('change', onConverterTypeChange);
-refs.converterBtn.addEventListener('click', onConverterBtnClick);
-refs.converterInput.addEventListener('input', onConverterIdsInput);
 
 function onConverterShow() {
   refs.converterSection.classList.remove('is-hidden');
