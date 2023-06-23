@@ -18,3 +18,15 @@ It's not uploaded to chrome-store, so installation is only manual.
 
 Example of installation and usage for switching between accounts:
 ![example](https://github.com/made-by-curiosity/lazy_charming/blob/main/assets/presentation.gif)
+
+Fast navigation:
+![navigation](https://github.com/made-by-curiosity/lazy_charming/blob/main/assets/navigation.jpg)
+
+Letters section:
+![letters](https://github.com/made-by-curiosity/lazy_charming/blob/main/assets/letters.jpg)
+
+Sending letters:
+![sending](https://github.com/made-by-curiosity/lazy_charming/blob/main/assets/sending.jpg)
+
+ID converter:
+![converter](https://github.com/made-by-curiosity/lazy_charming/blob/main/assets/converter.jpg)
