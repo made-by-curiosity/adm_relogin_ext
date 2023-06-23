@@ -7,7 +7,7 @@ account. If you want it to log you in to a certain page, you can chose it among 
 available for fast navigation on a website.
 
 The most interesting feature of this extension is reducing speed of sending messages between clients
-from one minute to 3 seconds. You don't need to go to many pages and fill may forms to send a
+from one minute to 3 seconds. You don't need to go to many pages and fill many forms to send a
 message. Choose ID and photo albums. Extension will automatically add random photos and videos from
 chosen albums.
 
